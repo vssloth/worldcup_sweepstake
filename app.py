@@ -100,37 +100,6 @@ def load_stormcup_data():
 # ----------------------------
 # STORM CUP SCORING (SIMPLE VERSION FROM YOUR ORIGINAL)
 # ----------------------------
-TEAM_NAME_MAP = {
-    "Korea Rep": "Korea Republic",
-    "South Korea": "Korea Republic",
-
-    "USA": "United States",
-    "United States of America": "United States",
-
-    "Czechia": "Czech Republic",
-    "Czech Republic": "Czech Republic",
-
-    "Turkey": "Türkiye",
-    "Türkiye": "Türkiye",
-
-    "Congo DR": "DR Congo",
-    "DR Congo": "DR Congo",
-
-    "Ivory Coast": "Côte d'Ivoire",
-
-    "Cape Verde": "Cabo Verde",
-
-    "Curacao": "Curaçao",
-
-    # 🔥 IMPORTANT FIXES FOR YOUR BUGS
-    "Bosnia": "Bosnia and Herzegovina",
-    "Bosnia-Herzegovina": "Bosnia and Herzegovina",
-
-    "Korea Republic": "Korea Republic",
-}
-
-def normalise(team):
-    return TEAM_NAME_MAP.get(team, team)
 
 TEAM_OWNERS = {
     "Argentina": "Daniel",
@@ -186,7 +155,6 @@ TEAM_OWNERS = {
     "Curaçao": "James",
 }
 
-TEAM_OWNERS = {normalise(k): v for k, v in TEAM_OWNERS.items()}
 
 
 
