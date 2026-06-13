@@ -154,27 +154,63 @@ TEAM_OWNERS = {
     "Curaçao": "James",
 }
 
+# =========================
+# NORMALISATION
+# =========================
 
-def compute_stormcup(df):
+TEAM_NAME_MAP = {
+    "Korea Rep": "Korea Republic",
+    "South Korea": "Korea Republic",
+    "USA": "United States",
+    "United States of America": "United States",
+    "Czechia": "Czech Republic",
+    "Turkey": "Türkiye",
+    "Congo DR": "DR Congo",
+    "DR Congo": "DR Congo",
+    "Ivory Coast": "Côte d'Ivoire",
+    "Cape Verde": "Cabo Verde",
+    "Curacao": "Curaçao",
+    "Bosnia": "Bosnia and Herzegovina",
+}
+
+
+def normalise(team):
+    return TEAM_NAME_MAP.get(team, team)
+
+
+
+# =========================
+# SCORING ENGINE
+# =========================
+
+def compute_scores(df):
+
     players = {"Daniel": 0, "Helen": 0, "Maggie": 0, "James": 0}
+    team_scores = {t: 0 for t in TEAM_OWNERS}
+
+    history = []
 
     df = df[df["status"] == "FINISHED"].sort_values("date")
 
     for _, row in df.iterrows():
 
-        home = row["home_team"]
-        away = row["away_team"]
+        home = normalise(row["home_team"])
+        away = normalise(row["away_team"])
 
         home_pts = 0
         away_pts = 0
 
+        # GROUP STAGE
         if row["stage"] == "GROUP_STAGE":
+
             if row["home_score"] > row["away_score"]:
                 home_pts = 3
             elif row["away_score"] > row["home_score"]:
                 away_pts = 3
             else:
                 home_pts = away_pts = 1
+
+        # KNOCKOUT
         else:
             if row["winner"] == "HOME_TEAM":
                 home_pts = 3
@@ -182,10 +218,18 @@ def compute_stormcup(df):
                 away_pts = 3
 
         for team, pts in [(home, home_pts), (away, away_pts)]:
-            if team in TEAM_OWNERS:
-                players[TEAM_OWNERS[team]] += pts
 
-    return players
+            if team in TEAM_OWNERS:
+                owner = TEAM_OWNERS[team]
+                team_scores[team] += pts
+                players[owner] += pts
+
+        history.append({
+            "date": row["date"],
+            **players.copy()
+        })
+
+    return players, team_scores, pd.DataFrame(history)
 
 
 # =========================================================
@@ -326,9 +370,7 @@ with tab1:
 # ----------------------------
 # TAB 2 - STORM CUP
 # ----------------------------
-# ----------------------------
-# TAB 2 - STORM CUP
-# ----------------------------
+
 with tab2:
 
     st.title("🌩️ Storm Cup Leaderboard")
