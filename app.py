@@ -154,6 +154,8 @@ TEAM_OWNERS = {
     "Curaçao": "James",
 }
 
+TEAM_OWNERS = {normalise(k): v for k, v in TEAM_OWNERS.items()}
+
 # =========================
 # NORMALISATION
 # =========================
@@ -161,16 +163,31 @@ TEAM_OWNERS = {
 TEAM_NAME_MAP = {
     "Korea Rep": "Korea Republic",
     "South Korea": "Korea Republic",
+    "KOR": "Korea Republic",
+
     "USA": "United States",
     "United States of America": "United States",
+
     "Czechia": "Czech Republic",
+
     "Turkey": "Türkiye",
+    "TUR": "Türkiye",
+
     "Congo DR": "DR Congo",
     "DR Congo": "DR Congo",
+    "COD": "DR Congo",
+
     "Ivory Coast": "Côte d'Ivoire",
+    "CIV": "Côte d'Ivoire",
+
     "Cape Verde": "Cabo Verde",
+    "CPV": "Cabo Verde",
+
     "Curacao": "Curaçao",
+    "CUW": "Curaçao",
+
     "Bosnia": "Bosnia and Herzegovina",
+    "BIH": "Bosnia and Herzegovina",
 }
 
 
@@ -214,8 +231,9 @@ def compute_stormcup(df):
                 away_pts = 3
 
         for team, pts in [(home, home_pts), (away, away_pts)]:
-            if team in TEAM_OWNERS:
-                players[TEAM_OWNERS[team]] += pts
+            owner = TEAM_OWNERS.get(team)
+                if owner:
+                    players[TEAM_OWNERS[team]] += pts
 
     return players
 
@@ -371,6 +389,7 @@ with tab2:
     # ----------------------------
     owner_to_teams = {}
     for team, owner in TEAM_OWNERS.items():
+        team = normalise(team)
         owner_to_teams.setdefault(owner, []).append(team)
 
     finished_matches = matches[matches["status"] == "FINISHED"]
