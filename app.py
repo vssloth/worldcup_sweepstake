@@ -158,10 +158,6 @@ TEAM_OWNERS = {
 
 
 
-# =========================
-# STORM CUP SCORING ENGINE
-# =========================
-
 def compute_stormcup(df):
 
     players = {"Daniel": 0, "Helen": 0, "Maggie": 0, "James": 0}
@@ -170,8 +166,8 @@ def compute_stormcup(df):
 
     for _, row in df.iterrows():
 
-        home = normalise(row["home_team"])
-        away = normalise(row["away_team"])
+        home = row["home_team"]
+        away = row["away_team"]
 
         home_pts = 0
         away_pts = 0
@@ -192,12 +188,12 @@ def compute_stormcup(df):
             elif row["winner"] == "AWAY_TEAM":
                 away_pts = 3
 
+        # assign to owners
         for team, pts in [(home, home_pts), (away, away_pts)]:
             if team in TEAM_OWNERS:
                 players[TEAM_OWNERS[team]] += pts
 
     return players
-
 
 # =========================================================
 # TABS
@@ -343,25 +339,15 @@ with tab2:
     st.title("🌩️ Storm Cup Leaderboard")
 
     matches = load_stormcup_data()
-    st.subheader("Raw API team names (debug)")
 
-    all_teams = sorted(
-        set(matches["home_team"].dropna().unique())
-        | set(matches["away_team"].dropna().unique())
-    )
-
-    st.write(all_teams)
     scores = compute_stormcup(matches)
 
-    # ----------------------------
-    # OWNER MAP (reverse)
-    # ----------------------------
+    finished_matches = matches[matches["status"] == "FINISHED"]
+
+    # build per-team stats
     owner_to_teams = {}
     for team, owner in TEAM_OWNERS.items():
-        team = normalise(team)
         owner_to_teams.setdefault(owner, []).append(team)
-
-    finished_matches = matches[matches["status"] == "FINISHED"]
 
     rows = []
 
