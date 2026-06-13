@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-from db import load_predictions, load_fixtures, ensure_table_exists
+from db import load_predictions, ensure_table_exists
 
 
 # ----------------------------
@@ -19,7 +19,6 @@ ensure_table_exists()
 # LOAD DATA
 # ----------------------------
 df = load_predictions()
-fixtures_df = load_fixtures()
 
 if df.empty:
     st.warning("No prediction data available yet.")
@@ -45,7 +44,7 @@ prev_df = df[df["date"] == previous_date]
 
 
 # ----------------------------
-# PLAYERS
+# PLAYERS (WORLD CUP)
 # ----------------------------
 PLAYERS = {
     "Miles": ["Argentina", "Iraq", "Iran", "England"],
@@ -63,16 +62,144 @@ PLAYERS = {
 }
 
 
+# =========================================================
+# STORM CUP DATA (IMPORT INSIDE TO AVOID BREAKING APP START)
+# =========================================================
+@st.cache_data(ttl=3600)
+def load_stormcup_data():
+    import requests
+
+    API_KEY = st.secrets["FOOTBALL_DATA_API_KEY"]
+
+    headers = {"X-Auth-Token": API_KEY}
+
+    url = "https://api.football-data.org/v4/competitions/WC/matches"
+
+    r = requests.get(url, headers=headers)
+    r.raise_for_status()
+
+    data = r.json()
+
+    rows = []
+
+    for m in data["matches"]:
+        rows.append({
+            "date": pd.to_datetime(m["utcDate"]).date(),
+            "stage": m["stage"],
+            "status": m["status"],
+            "home_team": m["homeTeam"]["name"],
+            "away_team": m["awayTeam"]["name"],
+            "home_score": m["score"]["fullTime"]["home"],
+            "away_score": m["score"]["fullTime"]["away"],
+            "winner": m["score"]["winner"]
+        })
+
+    return pd.DataFrame(rows)
+
+
 # ----------------------------
+# STORM CUP SCORING (SIMPLE VERSION FROM YOUR ORIGINAL)
+# ----------------------------
+TEAM_OWNERS = {
+    "Argentina": "Daniel",
+    "Portugal": "Daniel",
+    "Colombia": "Daniel",
+    "Switzerland": "Daniel",
+    "Croatia": "Daniel",
+    "Senegal": "Daniel",
+    "Egypt": "Daniel",
+    "Algeria": "Daniel",
+    "Côte d'Ivoire": "Daniel",
+    "Qatar": "Daniel",
+    "Saudi Arabia": "Daniel",
+    "New Zealand": "Daniel",
+
+    "Spain": "Helen",
+    "Netherlands": "Helen",
+    "Belgium": "Helen",
+    "Japan": "Helen",
+    "Mexico": "Helen",
+    "Sweden": "Helen",
+    "Korea Republic": "Helen",
+    "Iran": "Helen",
+    "Scotland": "Helen",
+    "South Africa": "Helen",
+    "Jordan": "Helen",
+    "Haiti": "Helen",
+
+    "France": "Maggie",
+    "Brazil": "Maggie",
+    "Morocco": "Maggie",
+    "Uruguay": "Maggie",
+    "United States": "Maggie",
+    "Austria": "Maggie",
+    "Canada": "Maggie",
+    "Bosnia and Herzegovina": "Maggie",
+    "Ghana": "Maggie",
+    "Tunisia": "Maggie",
+    "Uzbekistan": "Maggie",
+    "Cabo Verde": "Maggie",
+
+    "England": "James",
+    "Germany": "James",
+    "Norway": "James",
+    "Ecuador": "James",
+    "Türkiye": "James",
+    "Paraguay": "James",
+    "Australia": "James",
+    "Czech Republic": "James",
+    "Panama": "James",
+    "Iraq": "James",
+    "DR Congo": "James",
+    "Curaçao": "James",
+}
+
+
+def compute_stormcup(df):
+    players = {"Daniel": 0, "Helen": 0, "Maggie": 0, "James": 0}
+
+    df = df[df["status"] == "FINISHED"].sort_values("date")
+
+    for _, row in df.iterrows():
+
+        home = row["home_team"]
+        away = row["away_team"]
+
+        home_pts = 0
+        away_pts = 0
+
+        if row["stage"] == "GROUP_STAGE":
+            if row["home_score"] > row["away_score"]:
+                home_pts = 3
+            elif row["away_score"] > row["home_score"]:
+                away_pts = 3
+            else:
+                home_pts = away_pts = 1
+        else:
+            if row["winner"] == "HOME_TEAM":
+                home_pts = 3
+            elif row["winner"] == "AWAY_TEAM":
+                away_pts = 3
+
+        for team, pts in [(home, home_pts), (away, away_pts)]:
+            if team in TEAM_OWNERS:
+                players[TEAM_OWNERS[team]] += pts
+
+    return players
+
+
+# =========================================================
 # TABS
-# ----------------------------
-tab1, tab2, tab3 = st.tabs([
-    "Leaderboard",
-    "Trends",
-    "Fixtures"
+# =========================================================
+tab1, tab2 = st.tabs([
+    "🏆 World Cup Sweepstakes",
+    "🌩️ Storm Cup"
 ])
 
 
+# ----------------------------
+# TAB 1 - WORLD CUP (UNCHANGED UI)
+# ----------------------------
 with tab1:
 
     st.title("🏆 Chance Of Winning")
@@ -87,7 +214,6 @@ with tab1:
 
         delta = current - previous
 
-        # coloured arrows (HTML)
         if delta > 0:
             delta_html = f'<span style="color:green;">▲ {delta:.1f}%</span>'
         elif delta < 0:
@@ -95,7 +221,6 @@ with tab1:
         else:
             delta_html = f'<span style="color:gray;">• 0.0%</span>'
 
-        # team breakdown
         team_html = "<br>".join([
             f"{t}: {latest_df[latest_df['team']==t]['champ'].values[0]:.1f}%"
             if t in latest_df["team"].values else f"{t}: 0.0%"
@@ -129,7 +254,7 @@ with tab1:
         """
         <style>
         .block-container {
-            max-width: 750px;   /* 🔥 makes table narrow */
+            max-width: 750px;
             padding-top: 3rem;
         }
 
@@ -166,10 +291,10 @@ with tab1:
     st.markdown(html_table, unsafe_allow_html=True)
 
 
-# ----------------------------
-# TAB 2 - TRENDS
-# ----------------------------
-with tab2:
+    # ----------------------------
+    # Trends (UNCHANGED)
+    # ----------------------------
+    st.subheader("Trends")
 
     trend_rows = []
 
@@ -199,13 +324,17 @@ with tab2:
 
 
 # ----------------------------
-# TAB 3 - FIXTURES
+# TAB 2 - STORM CUP
 # ----------------------------
-with tab3:
+with tab2:
 
-    st.title("📅 Upcoming Fixtures")
+    st.title("🌩️ Storm Cup Leaderboard")
 
-    if fixtures_df.empty:
-        st.info("No fixtures loaded yet.")
-    else:
-        st.dataframe(fixtures_df, use_container_width=True, hide_index=True)
+    matches = load_stormcup_data()
+    scores = compute_stormcup(matches)
+
+    df_sc = pd.DataFrame(scores.items(), columns=["Player", "Points"])
+    df_sc = df_sc.sort_values("Points", ascending=False)
+    df_sc["Rank"] = range(1, len(df_sc) + 1)
+
+    st.dataframe(df_sc[["Rank", "Player", "Points"]], use_container_width=True)
