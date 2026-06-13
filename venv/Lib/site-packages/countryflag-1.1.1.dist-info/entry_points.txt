@@ -1,0 +1,2 @@
+[console_scripts]
+countryflag = countryflag.cli.main:main
