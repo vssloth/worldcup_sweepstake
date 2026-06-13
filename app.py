@@ -103,17 +103,30 @@ def load_stormcup_data():
 TEAM_NAME_MAP = {
     "Korea Rep": "Korea Republic",
     "South Korea": "Korea Republic",
+
     "USA": "United States",
     "United States of America": "United States",
+
     "Czechia": "Czech Republic",
+    "Czech Republic": "Czech Republic",
+
     "Turkey": "Türkiye",
+    "Türkiye": "Türkiye",
+
     "Congo DR": "DR Congo",
     "DR Congo": "DR Congo",
+
     "Ivory Coast": "Côte d'Ivoire",
+
     "Cape Verde": "Cabo Verde",
+
     "Curacao": "Curaçao",
+
+    # 🔥 IMPORTANT FIXES FOR YOUR BUGS
     "Bosnia": "Bosnia and Herzegovina",
-    "BIH": "Bosnia and Herzegovina",
+    "Bosnia-Herzegovina": "Bosnia and Herzegovina",
+
+    "Korea Republic": "Korea Republic",
 }
 
 def normalise(team):
