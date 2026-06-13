@@ -232,8 +232,8 @@ def compute_stormcup(df):
 
         for team, pts in [(home, home_pts), (away, away_pts)]:
             owner = TEAM_OWNERS.get(team)
-                if owner:
-                    players[TEAM_OWNERS[team]] += pts
+            if owner:
+                players[TEAM_OWNERS[team]] += pts
 
     return players
 
