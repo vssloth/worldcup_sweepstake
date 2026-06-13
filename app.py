@@ -333,8 +333,116 @@ with tab2:
     matches = load_stormcup_data()
     scores = compute_stormcup(matches)
 
-    df_sc = pd.DataFrame(scores.items(), columns=["Player", "Points"])
-    df_sc = df_sc.sort_values("Points", ascending=False)
-    df_sc["Rank"] = range(1, len(df_sc) + 1)
+    # ----------------------------
+    # TEAM OWNERS REVERSE MAP
+    # ----------------------------
+    owner_to_teams = {}
+    for team, owner in TEAM_OWNERS.items():
+        owner_to_teams.setdefault(owner, []).append(team)
 
-    st.dataframe(df_sc[["Rank", "Player", "Points"]], use_container_width=True)
+    # ----------------------------
+    # BUILD ENRICHED PLAYER TABLE
+    # ----------------------------
+    rows = []
+
+    finished_matches = matches[matches["status"] == "FINISHED"]
+
+    for player, points in scores.items():
+
+        teams = owner_to_teams.get(player, [])
+
+        # games played by player's teams
+        games_played = finished_matches[
+            finished_matches["home_team"].isin(teams) |
+            finished_matches["away_team"].isin(teams)
+        ].shape[0]
+
+        # contribution breakdown
+        team_breakdown = []
+        contribution = 0
+
+        for team in teams:
+            team_matches = finished_matches[
+                (finished_matches["home_team"] == team) |
+                (finished_matches["away_team"] == team)
+            ]
+
+            pts = 0
+
+            for _, r in team_matches.iterrows():
+                if r["stage"] == "GROUP_STAGE":
+                    if r["home_team"] == team:
+                        if r["home_score"] > r["away_score"]:
+                            pts += 3
+                        elif r["home_score"] == r["away_score"]:
+                            pts += 1
+                    else:
+                        if r["away_score"] > r["home_score"]:
+                            pts += 3
+                        elif r["home_score"] == r["away_score"]:
+                            pts += 1
+                else:
+                    if r["winner"] == "HOME_TEAM" and r["home_team"] == team:
+                        pts += 3
+                    elif r["winner"] == "AWAY_TEAM" and r["away_team"] == team:
+                        pts += 3
+
+            contribution += pts
+            team_breakdown.append(f"{team} ({pts})")
+
+        rows.append({
+            "Player": player,
+            "Points": points,
+            "Games": games_played,
+            "Contribution": contribution,
+            "Teams": "<br>".join(team_breakdown)
+        })
+
+    df_sc = pd.DataFrame(rows)
+
+    df_sc = df_sc.sort_values("Points", ascending=False).reset_index(drop=True)
+
+    # ----------------------------
+    # FORMAT LIKE WORLD CUP TABLE
+    # ----------------------------
+    html_table = df_sc.to_html(index=False, escape=False)
+
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            max-width: 750px;
+            padding-top: 3rem;
+        }
+
+        table {
+            margin-left: auto;
+            margin-right: auto;
+            width: auto;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #111;
+            color: white;
+            text-align: center;
+            padding: 6px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 6px;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(html_table, unsafe_allow_html=True)
