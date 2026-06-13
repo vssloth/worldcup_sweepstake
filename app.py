@@ -100,6 +100,25 @@ def load_stormcup_data():
 # ----------------------------
 # STORM CUP SCORING (SIMPLE VERSION FROM YOUR ORIGINAL)
 # ----------------------------
+TEAM_NAME_MAP = {
+    "Korea Rep": "Korea Republic",
+    "South Korea": "Korea Republic",
+    "USA": "United States",
+    "United States of America": "United States",
+    "Czechia": "Czech Republic",
+    "Turkey": "Türkiye",
+    "Congo DR": "DR Congo",
+    "DR Congo": "DR Congo",
+    "Ivory Coast": "Côte d'Ivoire",
+    "Cape Verde": "Cabo Verde",
+    "Curacao": "Curaçao",
+    "Bosnia": "Bosnia and Herzegovina",
+    "BIH": "Bosnia and Herzegovina",
+}
+
+def normalise(team):
+    return TEAM_NAME_MAP.get(team, team)
+
 TEAM_OWNERS = {
     "Argentina": "Daniel",
     "Portugal": "Daniel",
@@ -155,44 +174,6 @@ TEAM_OWNERS = {
 }
 
 TEAM_OWNERS = {normalise(k): v for k, v in TEAM_OWNERS.items()}
-
-# =========================
-# NORMALISATION
-# =========================
-
-TEAM_NAME_MAP = {
-    "Korea Rep": "Korea Republic",
-    "South Korea": "Korea Republic",
-    "KOR": "Korea Republic",
-
-    "USA": "United States",
-    "United States of America": "United States",
-
-    "Czechia": "Czech Republic",
-
-    "Turkey": "Türkiye",
-    "TUR": "Türkiye",
-
-    "Congo DR": "DR Congo",
-    "DR Congo": "DR Congo",
-    "COD": "DR Congo",
-
-    "Ivory Coast": "Côte d'Ivoire",
-    "CIV": "Côte d'Ivoire",
-
-    "Cape Verde": "Cabo Verde",
-    "CPV": "Cabo Verde",
-
-    "Curacao": "Curaçao",
-    "CUW": "Curaçao",
-
-    "Bosnia": "Bosnia and Herzegovina",
-    "BIH": "Bosnia and Herzegovina",
-}
-
-
-def normalise(team):
-    return TEAM_NAME_MAP.get(team, team)
 
 
 
