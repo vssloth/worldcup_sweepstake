@@ -200,7 +200,7 @@ def compute_stormcup(df):
 # =========================================================
 tab1, tab2 = st.tabs([
     "🏆 World Cup Sweepstakes",
-    "🌩️ Storm Cup"
+    "Storm Cup"
 ])
 
 
@@ -301,7 +301,7 @@ with tab1:
     # ----------------------------
     # Trends (UNCHANGED)
     # ----------------------------
-    st.subheader("Trends")
+
 
     trend_rows = []
 
@@ -336,7 +336,7 @@ with tab1:
 
 with tab2:
 
-    st.title("🌩️ Storm Cup Leaderboard")
+
 
     matches = load_stormcup_data()
 
