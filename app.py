@@ -375,6 +375,14 @@ with tab2:
     st.title("🌩️ Storm Cup Leaderboard")
 
     matches = load_stormcup_data()
+    st.subheader("Raw API team names (debug)")
+
+all_teams = sorted(
+    set(matches["home_team"].dropna().unique())
+    | set(matches["away_team"].dropna().unique())
+)
+
+st.write(all_teams)
     scores = compute_stormcup(matches)
 
     # ----------------------------
