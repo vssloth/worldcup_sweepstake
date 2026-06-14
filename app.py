@@ -20,13 +20,9 @@ ensure_table_exists()
 # ----------------------------
 df = load_predictions()
 
-st.write("LATEST DATE:", latest_date)
-
-st.write("Rows in latest snapshot:")
-st.write(len(latest_df))
-
-st.write("Teams in latest snapshot:")
-st.write(sorted(latest_df["team"].unique()))
+st.write("TOTAL ROWS:", len(df))
+st.write("DATES:", df["date"].value_counts())
+st.write(df.groupby("date")["team"].count())
 
 if df.empty:
     st.warning("No prediction data available yet.")
