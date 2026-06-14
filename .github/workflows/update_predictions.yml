@@ -1,9 +1,14 @@
-name: Update World Cup Predictions
+name: Update Predictions
 
 on:
   schedule:
-    - cron: "0 7 * * *"  # 8am BST (7am UTC)
-  workflow_dispatch:  # manual run button
+    # 08:00 BST = 07:00 UTC
+    - cron: "0 7 * * *"
+
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
 
 jobs:
   update:
@@ -18,24 +23,26 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies (Playwright needs this)
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Install Python dependencies
+      - name: Install Playwright browsers
         run: |
-          pip install pandas requests playwright
-          playwright install chromium
+          python -m playwright install --with-deps
 
-      - name: Run prediction scraper
-        run: python update_predictions.py
+      - name: Run update script
+        run: |
+          python update_predictions.py
 
       - name: Commit updated database
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
           git add data.db
-          git commit -m "Update predictions" || echo "No changes"
+
+          git commit -m "Update predictions" || echo "No changes to commit"
+
           git push
