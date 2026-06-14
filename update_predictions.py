@@ -4,10 +4,9 @@ from db import insert_predictions
 if __name__ == "__main__":
     df = scrape_opta_predictions()
 
-    # DEBUG (important while fixing)
-    print("ROWS:", len(df))
-    print(df.head(10))
+    if df.empty:
+        raise ValueError("Scraper returned no data")
 
     insert_predictions(df)
 
-    print("Predictions updated successfully")
+    print(f"Inserted {len(df)} prediction rows")
