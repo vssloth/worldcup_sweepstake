@@ -1,19 +1,13 @@
-import pandas as pd
+from scraper import scrape_opta_predictions
 from db import insert_predictions
 
-# Example: replace this with your real logic / data source
-def generate_predictions():
-    # MUST return columns: date, team, champ
-    data = [
-        # example rows (replace with real model output)
-        {"date": "2026-06-14", "team": "Argentina", "champ": 18.2},
-        {"date": "2026-06-14", "team": "England", "champ": 15.1},
-    ]
-
-    return pd.DataFrame(data)
-
-
 if __name__ == "__main__":
-    df = generate_predictions()
+    df = scrape_opta_predictions()
+
+    # DEBUG (important while fixing)
+    print("ROWS:", len(df))
+    print(df.head(10))
+
     insert_predictions(df)
-    print("Predictions updated")
+
+    print("Predictions updated successfully")
