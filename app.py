@@ -20,9 +20,6 @@ ensure_table_exists()
 # ----------------------------
 df = load_predictions()
 
-st.write("Latest prediction dates:")
-st.write(sorted(df["date"].unique())[-10:])
-
 if df.empty:
     st.warning("No prediction data available yet.")
     st.stop()
