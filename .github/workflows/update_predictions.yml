@@ -1,9 +1,15 @@
+permissions:
+  contents: write
+
 name: Update Predictions
 
 on:
   schedule:
-    - cron: "0 8 * * *"   # 8am UTC (9am BST / 8am GMT depending on DST)
-  workflow_dispatch:      # allows manual run button
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 🔥 REQUIRED for git push
 
 jobs:
   update:
@@ -33,7 +39,7 @@ jobs:
 
           git add data.db
 
-          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git diff --cached --quiet && echo "No changes" && exit 0
 
           git commit -m "Update predictions"
           git push
