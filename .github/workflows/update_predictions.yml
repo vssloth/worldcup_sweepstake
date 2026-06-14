@@ -2,7 +2,7 @@ name: Update Predictions
 
 on:
   schedule:
-    - cron: "0 8 * * *"  # 8am UTC (see note below)
+    - cron: "0 7 * * *"  # 8am UTC (see note below)
   workflow_dispatch:
 
 permissions:
