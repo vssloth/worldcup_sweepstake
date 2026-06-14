@@ -4,71 +4,89 @@ from datetime import datetime
 import json
 import re
 
-PRED_URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
+URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
 
 
 def scrape_opta_predictions():
     headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "text/html,application/json",
+        "User-Agent": "Mozilla/5.0"
     }
 
-    r = requests.get(PRED_URL, headers=headers, timeout=30)
+    r = requests.get(URL, headers=headers, timeout=30)
     r.raise_for_status()
 
     html = r.text
 
-    # ---------------------------------------
-    # METHOD 1: Try to find JSON in page
-    # ---------------------------------------
+    # -------------------------------------------------------
+    # STEP 1: Extract Next.js embedded JSON (MOST IMPORTANT)
+    # -------------------------------------------------------
+    match = re.search(
+        r'__NEXT_DATA__\s*=\s*({.*?})\s*</script>',
+        html,
+        re.DOTALL
+    )
+
     data = []
 
-    json_candidates = re.findall(r'\{.*?\}', html)
-
-    for candidate in json_candidates:
+    if match:
         try:
-            obj = json.loads(candidate)
+            next_data = json.loads(match.group(1))
 
-            # look for team + probability patterns
-            if isinstance(obj, dict):
+            # recursively search JSON for probabilities
+            def walk(obj):
+                if isinstance(obj, dict):
 
-                # common patterns seen in Opta/Nuxt dumps
-                if "team" in obj and ("champ" in obj or "winProbability" in obj):
-                    team = obj.get("team")
-                    champ = obj.get("champ") or obj.get("winProbability")
+                    # common Opta pattern
+                    if "name" in obj and ("championshipProbability" in obj or "champ" in obj):
+                        team = obj.get("name")
+                        champ = obj.get("championshipProbability") or obj.get("champ")
 
-                    if team and champ is not None:
-                        data.append({
-                            "date": datetime.utcnow().date().isoformat(),
-                            "team": team,
-                            "champ": float(str(champ).replace("%", ""))
-                        })
+                        if team and champ is not None:
+                            data.append({
+                                "date": datetime.utcnow().date().isoformat(),
+                                "team": team,
+                                "champ": float(str(champ).replace("%", ""))
+                            })
 
-        except:
-            continue
+                    for v in obj.values():
+                        walk(v)
 
-    # ---------------------------------------
-    # METHOD 2: fallback regex table scrape
-    # ---------------------------------------
+                elif isinstance(obj, list):
+                    for i in obj:
+                        walk(i)
+
+            walk(next_data)
+
+        except Exception as e:
+            print("Next.js parse failed:", e)
+
+    # -------------------------------------------------------
+    # STEP 2: fallback JSON-in-page scan (backup)
+    # -------------------------------------------------------
     if not data:
-        rows = re.findall(r'([A-Za-zÀ-ÿ .\'-]+)\s+([0-9]+(?:\.[0-9]+)?)%', html)
+        json_blocks = re.findall(r'\{[^{}]*"name"[^{}]*\}', html)
 
-        for team, champ in rows:
-            data.append({
-                "date": datetime.utcnow().date().isoformat(),
-                "team": team.strip(),
-                "champ": float(champ)
-            })
+        for block in json_blocks:
+            try:
+                obj = json.loads(block)
+                if "name" in obj and "champ" in obj:
+                    data.append({
+                        "date": datetime.utcnow().date().isoformat(),
+                        "team": obj["name"],
+                        "champ": float(str(obj["champ"]).replace("%", ""))
+                    })
+            except:
+                continue
 
     df = pd.DataFrame(data)
 
-    # ---------------------------------------
+    # -------------------------------------------------------
     # HARD FAIL SAFETY
-    # ---------------------------------------
+    # -------------------------------------------------------
     if df.empty:
-        raise ValueError("Scraper returned no data — site structure changed or blocked request")
+        raise ValueError("Scraper returned no data — site structure changed")
 
-    # cleanup duplicates if any
+    # clean duplicates
     df = df.groupby(["date", "team"], as_index=False).mean()
 
     return df
