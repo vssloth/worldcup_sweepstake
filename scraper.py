@@ -1,50 +1,67 @@
 from playwright.sync_api import sync_playwright
 import pandas as pd
 from datetime import datetime
-
-from db import insert_predictions, insert_fixtures
+import json
 
 
 URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
 
 
-# ----------------------------
-# TEAM CHAMPIONSHIP PROBS
-# ----------------------------
 def scrape_opta_predictions():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
-        page.goto(URL, timeout=60000)
-        page.wait_for_timeout(8000)
+        captured = []
 
-        rows = page.query_selector_all("tr")
-
-        data = []
-
-        for r in rows:
-            cols = r.query_selector_all("td")
-
-            if len(cols) < 3:
-                continue
-
-            team = cols[0].inner_text().strip()
-            champ_text = cols[-1].inner_text().strip().replace("%", "")
-
+        def handle_response(response):
             try:
-                champ = float(champ_text)
+                url = response.url
+
+                # 🎯 Narrow filter: only likely API calls
+                if "prediction" in url.lower() or "world-cup" in url.lower():
+                    data = response.json()
+
+                    if isinstance(data, list):
+                        captured.extend(data)
+
+                    if isinstance(data, dict):
+                        for key in ["teams", "data", "items", "results"]:
+                            if key in data and isinstance(data[key], list):
+                                captured.extend(data[key])
+
+            except:
+                pass
+
+        page.on("response", handle_response)
+
+        page.goto(URL, timeout=60000)
+        page.wait_for_timeout(12000)
+
+        browser.close()
+
+        rows = []
+        for item in captured:
+            try:
+                team = item.get("team") or item.get("name")
+                champ = item.get("championshipProbability") or item.get("champ") or item.get("prob")
+
+                if team is None or champ is None:
+                    continue
+
+                rows.append({
+                    "date": datetime.utcnow().date().isoformat(),
+                    "team": team,
+                    "champ": float(str(champ).replace("%", ""))
+                })
+
             except:
                 continue
 
-            data.append({
-                "date": datetime.utcnow().date().isoformat(),
-                "team": team,
-                "champ": champ
-            })
+        df = pd.DataFrame(rows)
 
-        browser.close()
-        return pd.DataFrame(data)
+        print("DEBUG scraped rows:", len(df))
+        return df
 
 
 # ----------------------------
