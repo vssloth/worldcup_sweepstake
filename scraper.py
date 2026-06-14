@@ -1,92 +1,67 @@
-import requests
+from playwright.sync_api import sync_playwright
 import pandas as pd
 from datetime import datetime
-import json
 import re
+
 
 URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
 
 
 def scrape_opta_predictions():
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
 
-    r = requests.get(URL, headers=headers, timeout=30)
-    r.raise_for_status()
+        page.goto(URL, timeout=60000)
+        page.wait_for_timeout(8000)
 
-    html = r.text
+        # wait for table to actually render
+        page.wait_for_selector("text=champ", timeout=60000)
 
-    # -------------------------------------------------------
-    # STEP 1: Extract Next.js embedded JSON (MOST IMPORTANT)
-    # -------------------------------------------------------
-    match = re.search(
-        r'__NEXT_DATA__\s*=\s*({.*?})\s*</script>',
-        html,
-        re.DOTALL
-    )
+        rows = page.query_selector_all("tr")
 
-    data = []
+        data = []
 
-    if match:
-        try:
-            next_data = json.loads(match.group(1))
+        for r in rows:
+            text = r.inner_text()
 
-            # recursively search JSON for probabilities
-            def walk(obj):
-                if isinstance(obj, dict):
+            # skip header rows
+            if "champ" in text.lower() and "%" not in text:
+                continue
 
-                    # common Opta pattern
-                    if "name" in obj and ("championshipProbability" in obj or "champ" in obj):
-                        team = obj.get("name")
-                        champ = obj.get("championshipProbability") or obj.get("champ")
+            cols = r.query_selector_all("td")
+            if len(cols) < 2:
+                continue
 
-                        if team and champ is not None:
-                            data.append({
-                                "date": datetime.utcnow().date().isoformat(),
-                                "team": team,
-                                "champ": float(str(champ).replace("%", ""))
-                            })
-
-                    for v in obj.values():
-                        walk(v)
-
-                elif isinstance(obj, list):
-                    for i in obj:
-                        walk(i)
-
-            walk(next_data)
-
-        except Exception as e:
-            print("Next.js parse failed:", e)
-
-    # -------------------------------------------------------
-    # STEP 2: fallback JSON-in-page scan (backup)
-    # -------------------------------------------------------
-    if not data:
-        json_blocks = re.findall(r'\{[^{}]*"name"[^{}]*\}', html)
-
-        for block in json_blocks:
             try:
-                obj = json.loads(block)
-                if "name" in obj and "champ" in obj:
-                    data.append({
-                        "date": datetime.utcnow().date().isoformat(),
-                        "team": obj["name"],
-                        "champ": float(str(obj["champ"]).replace("%", ""))
-                    })
+                # TEAM NAME (first column)
+                team_raw = cols[0].inner_text().strip()
+
+                # remove "team logo" prefix if present
+                team = re.sub(r"team\s*logo", "", team_raw, flags=re.I).strip()
+
+                # LAST COLUMN = champ %
+                champ_text = cols[-1].inner_text().strip().replace("%", "")
+
+                champ = float(champ_text)
+
+                data.append({
+                    "date": datetime.utcnow().date().isoformat(),
+                    "team": team,
+                    "champ": champ
+                })
+
             except:
                 continue
 
-    df = pd.DataFrame(data)
+        browser.close()
 
-    # -------------------------------------------------------
-    # HARD FAIL SAFETY
-    # -------------------------------------------------------
-    if df.empty:
-        raise ValueError("Scraper returned no data — site structure changed")
+        df = pd.DataFrame(data)
 
-    # clean duplicates
-    df = df.groupby(["date", "team"], as_index=False).mean()
+        if df.empty:
+            raise ValueError("Scraper returned no data")
 
-    return df
+        # safety cleanup: remove duplicates if any
+        df = df.groupby(["date", "team"], as_index=False).mean()
+
+        return df
