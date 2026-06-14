@@ -5,8 +5,7 @@ if __name__ == "__main__":
     df = scrape_opta_predictions()
 
     if df.empty:
-        raise ValueError("Scraper returned no data")
+        raise ValueError("No predictions returned")
 
     insert_predictions(df)
-
-    print(f"Inserted {len(df)} prediction rows")
+    print(f"Inserted {len(df)} rows")
