@@ -14,52 +14,84 @@ FIXTURES_URL = "https://theanalyst.com/competition/fifa-world-cup/fixtures"
 # =========================================================
 # PREDICTIONS SCRAPER (ROBUST DOM VERSION)
 # =========================================================
+import requests
+import pandas as pd
+from datetime import datetime
+
+
+PREDICTIONS_URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
+
+
 def scrape_opta_predictions():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+    session = requests.Session()
 
-        print("Loading predictions page...")
-        page.goto(PREDICTIONS_URL, timeout=60000)
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": PREDICTIONS_URL
+    }
 
-        # wait for JS rendering
-        page.wait_for_timeout(12000)
-        page.wait_for_load_state("networkidle")
+    # -----------------------------------------------------
+    # TRY LIKELY API ENDPOINTS (THE ANALYST VARIANTS)
+    # -----------------------------------------------------
+    candidate_urls = [
+        "https://theanalyst.com/api/predictions",
+        "https://theanalyst.com/api/competition/fifa-world-cup/predictions",
+        "https://theanalyst.com/api/v1/predictions",
+        "https://theanalyst.com/_next/data/predictions.json",
+    ]
 
-        rows = page.query_selector_all("tr")
+    data = None
 
-        print(f"DEBUG: found {len(rows)} table rows")
+    for url in candidate_urls:
+        try:
+            r = session.get(url, headers=headers, timeout=20)
+            if r.status_code == 200:
+                try:
+                    data = r.json()
+                    print(f"DEBUG: working API found -> {url}")
+                    break
+                except Exception:
+                    continue
+        except Exception:
+            continue
 
-        data = []
+    if not data:
+        raise ValueError("No valid predictions API found")
 
-        for r in rows:
-            cols = r.query_selector_all("td")
+    # -----------------------------------------------------
+    # NORMALISE OUTPUT (HANDLES MULTIPLE SHAPES)
+    # -----------------------------------------------------
+    rows = []
+    today = datetime.utcnow().date().isoformat()
 
-            # relaxed condition (important fix)
-            if len(cols) < 2:
-                continue
+    # CASE 1: list of teams
+    if isinstance(data, list):
+        for item in data:
+            rows.append({
+                "date": today,
+                "team": item.get("team") or item.get("name"),
+                "champ": float(item.get("champ") or item.get("winProb") or 0)
+            })
 
-            try:
-                team = cols[0].inner_text().strip()
-                champ_text = cols[-1].inner_text().strip().replace("%", "")
-                champ = float(champ_text)
+    # CASE 2: nested dict
+    elif isinstance(data, dict):
+        # common patterns
+        for key in ["teams", "predictions", "data"]:
+            if key in data and isinstance(data[key], list):
+                for item in data[key]:
+                    rows.append({
+                        "date": today,
+                        "team": item.get("team") or item.get("name"),
+                        "champ": float(item.get("champ") or item.get("winProb") or 0)
+                    })
+                break
 
-                data.append({
-                    "date": datetime.utcnow().date().isoformat(),
-                    "team": team,
-                    "champ": champ
-                })
+    df = pd.DataFrame(rows)
 
-            except Exception:
-                continue
+    print(f"DEBUG: parsed prediction rows = {len(df)}")
 
-        browser.close()
-
-        df = pd.DataFrame(data)
-
-        print(f"DEBUG: scraped prediction rows = {len(df)}")
-
-        return df
+    return df
 
 
 # =========================================================
