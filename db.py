@@ -30,7 +30,8 @@ def insert_predictions(df):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    snapshot_date = df["date"].iloc[0]
+    snapshot_date = pd.Timestamp.utcnow().date().isoformat()
+    df["date"] = snapshot_date
 
     cur.execute("""
         DELETE FROM predictions
