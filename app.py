@@ -20,11 +20,13 @@ ensure_table_exists()
 # ----------------------------
 df = load_predictions()
 
-st.write("DEBUG: rows per date")
-st.write(df.groupby("date").size())
+st.write("LATEST DATE:", latest_date)
 
-st.write("DEBUG: latest snapshot sample")
-st.write(df[df["date"] == latest_date].head(20))
+st.write("Rows in latest snapshot:")
+st.write(len(latest_df))
+
+st.write("Teams in latest snapshot:")
+st.write(sorted(latest_df["team"].unique()))
 
 if df.empty:
     st.warning("No prediction data available yet.")
