@@ -1,116 +1,74 @@
-from playwright.sync_api import sync_playwright
+import requests
 import pandas as pd
 from datetime import datetime
+import json
+import re
 
-
-# =========================================================
-# PREDICTIONS SCRAPER (WORKING DOM VERSION)
-# =========================================================
-
-PREDICTIONS_URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
+PRED_URL = "https://theanalyst.com/competition/fifa-world-cup/predictions"
 
 
 def scrape_opta_predictions():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "text/html,application/json",
+    }
 
-        page.goto(PREDICTIONS_URL, timeout=60000)
+    r = requests.get(PRED_URL, headers=headers, timeout=30)
+    r.raise_for_status()
 
-        # Wait for table to exist (more stable than sleep)
-        page.wait_for_selector("tr", timeout=30000)
+    html = r.text
 
-        rows = page.query_selector_all("tr")
+    # ---------------------------------------
+    # METHOD 1: Try to find JSON in page
+    # ---------------------------------------
+    data = []
 
-        data = []
+    json_candidates = re.findall(r'\{.*?\}', html)
 
-        for r in rows:
-            cols = r.query_selector_all("td")
+    for candidate in json_candidates:
+        try:
+            obj = json.loads(candidate)
 
-            if len(cols) < 3:
-                continue
+            # look for team + probability patterns
+            if isinstance(obj, dict):
 
-            team = cols[0].inner_text().strip()
-            champ_text = cols[-1].inner_text().strip().replace("%", "")
+                # common patterns seen in Opta/Nuxt dumps
+                if "team" in obj and ("champ" in obj or "winProbability" in obj):
+                    team = obj.get("team")
+                    champ = obj.get("champ") or obj.get("winProbability")
 
-            try:
-                champ = float(champ_text)
-            except:
-                continue
+                    if team and champ is not None:
+                        data.append({
+                            "date": datetime.utcnow().date().isoformat(),
+                            "team": team,
+                            "champ": float(str(champ).replace("%", ""))
+                        })
 
+        except:
+            continue
+
+    # ---------------------------------------
+    # METHOD 2: fallback regex table scrape
+    # ---------------------------------------
+    if not data:
+        rows = re.findall(r'([A-Za-zÀ-ÿ .\'-]+)\s+([0-9]+(?:\.[0-9]+)?)%', html)
+
+        for team, champ in rows:
             data.append({
                 "date": datetime.utcnow().date().isoformat(),
-                "team": team,
-                "champ": champ
+                "team": team.strip(),
+                "champ": float(champ)
             })
 
-        browser.close()
+    df = pd.DataFrame(data)
 
-        df = pd.DataFrame(data)
+    # ---------------------------------------
+    # HARD FAIL SAFETY
+    # ---------------------------------------
+    if df.empty:
+        raise ValueError("Scraper returned no data — site structure changed or blocked request")
 
-        print(f"DEBUG scraped prediction rows: {len(df)}")
+    # cleanup duplicates if any
+    df = df.groupby(["date", "team"], as_index=False).mean()
 
-        return df
-
-
-# =========================================================
-# FIXTURES SCRAPER (ROBUST NETWORK INTERCEPT VERSION)
-# =========================================================
-
-FIXTURES_URL = "https://theanalyst.com/competition/fifa-world-cup/fixtures"
-
-
-def scrape_fixtures():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-
-        fixtures = []
-
-        def handle_response(response):
-            url = response.url
-
-            # capture any football-related API payloads
-            if "match" in url or "fixture" in url:
-                try:
-                    data = response.json()
-
-                    if isinstance(data, list):
-                        fixtures.extend(data)
-
-                    elif isinstance(data, dict):
-                        if "matches" in data:
-                            fixtures.extend(data["matches"])
-                        elif "fixtures" in data:
-                            fixtures.extend(data["fixtures"])
-
-                except:
-                    pass
-
-        page.on("response", handle_response)
-
-        page.goto(FIXTURES_URL, timeout=60000)
-        page.wait_for_timeout(12000)
-
-        browser.close()
-
-        rows = []
-
-        for f in fixtures:
-            try:
-                rows.append({
-                    "date": datetime.utcnow().date().isoformat(),
-                    "home_team": f.get("homeTeam", {}).get("name", ""),
-                    "away_team": f.get("awayTeam", {}).get("name", ""),
-                    "home_win": f.get("probabilities", {}).get("homeWin", 0),
-                    "draw": f.get("probabilities", {}).get("draw", 0),
-                    "away_win": f.get("probabilities", {}).get("awayWin", 0),
-                })
-            except:
-                continue
-
-        df = pd.DataFrame(rows)
-
-        print(f"DEBUG scraped fixture rows: {len(df)}")
-
-        return df
+    return df
