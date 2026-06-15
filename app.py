@@ -409,9 +409,9 @@ with tab2:
                     else:
                         losses += 1
             
-        team_strings.append(
-            f"{team} ({pts} points - P {played}, W {wins}, D {draws}, L {losses})"
-        )
+            team_strings.append(
+                f"{team} ({pts} points - P {played}, W {wins}, D {draws}, L {losses})"
+            )
 
         rows.append({
             "Player": player,
