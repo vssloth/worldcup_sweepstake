@@ -213,7 +213,6 @@ def get_team_cards(matches):
     cards = {}
 
     for _, m in finished.iterrows():
-
         match_id = m["match_id"]
 
         r = requests.get(
@@ -226,21 +225,26 @@ def get_team_cards(matches):
 
         data = r.json()
 
-        for b in data.get("bookings", []):
+        # ⚠️ IMPORTANT: events, not bookings
+        events = data.get("events", [])
 
-            team = b["team"]["name"]
-            card = b["card"]
+        for e in events:
+            etype = e.get("type", "").upper()
+            team = e.get("team", {}).get("name")
+
+            if not team:
+                continue
 
             if team not in cards:
                 cards[team] = {"Y": 0, "R": 0}
 
-            if card == "YELLOW":
+            if etype in ["YELLOW_CARD", "YELLOW"]:
                 cards[team]["Y"] += 1
-            elif card == "RED":
+
+            elif etype in ["RED_CARD", "RED"]:
                 cards[team]["R"] += 1
 
     return cards
-
 # =========================================================
 # TABS
 # =========================================================
