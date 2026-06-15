@@ -592,44 +592,28 @@ with tab3:
         unsafe_allow_html=True
     )
 
-with tab3:
-
-    st.title("📊 Match Results + Discipline")
-
-    matches = load_stormcup_data()
-
-    st.subheader("Results")
-
-    results = matches[matches["status"] == "FINISHED"].copy()
-
-    results["score"] = (
-        results["home_team"].astype(str) + " " +
-        results["home_score"].astype(str) + " - " +
-        results["away_score"].astype(str) + " " +
-        results["away_team"].astype(str)
-    )
-
-    st.dataframe(
-        results[["date", "stage", "score"]],
-        use_container_width=True,
-        hide_index=True
-    )
-
     st.subheader("🟨🟥 Team Discipline")
 
     cards = get_team_cards(matches)
-
+    
     card_rows = []
-
+    
     for team, v in cards.items():
         card_rows.append({
             "Team": team,
-            "Yellow": v["Y"],
-            "Red": v["R"]
+            "Yellow": v.get("Y", 0),
+            "Red": v.get("R", 0)
         })
-
-    cards_df = pd.DataFrame(card_rows).sort_values(
-        ["Red", "Yellow"], ascending=False
-    )
-
+    
+    cards_df = pd.DataFrame(card_rows)
+    
+    # 👉 IMPORTANT: handle empty case safely
+    if cards_df.empty:
+        cards_df = pd.DataFrame(columns=["Team", "Yellow", "Red"])
+    else:
+        cards_df = cards_df.sort_values(
+            ["Red", "Yellow"],
+            ascending=False
+        )
+    
     st.dataframe(cards_df, use_container_width=True, hide_index=True)
