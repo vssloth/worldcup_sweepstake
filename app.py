@@ -210,7 +210,7 @@ import requests
 # =========================================================
 tab1, tab2, tab3 = st.tabs([
     "🏆 World Cup Sweepstakes",
-    "⚽ Results so far"
+    "⚽ Results so far",
     "😺 Storm Cup",
     
 ])
