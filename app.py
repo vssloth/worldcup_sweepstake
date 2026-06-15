@@ -481,19 +481,23 @@ with tab2:
 
 with tab3:
 
+with tab3:
+
     st.title("⚽ World Cup Results")
 
     matches = load_stormcup_data()
 
-    finished = matches.sort_values("date", ascending=False)
-    
+    finished = matches[
+        matches["status"] == "FINISHED"
+    ].sort_values("date", ascending=False)
+
     rows = []
 
     for _, row in finished.iterrows():
 
         rows.append({
             "Date": row["date"],
-            "Stage": row["stage"].replace("_", " ").title(),
+            "Stage": str(row["stage"]).replace("_", " ").title(),
             "Result": (
                 f"{row['home_team']} "
                 f"{int(row['home_score'])} - {int(row['away_score'])} "
@@ -546,9 +550,6 @@ with tab3:
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        html_table,
-        unsafe_allow_html=True
-    )
+    st.markdown(results_df.to_html(index=False), unsafe_allow_html=True)
 
 
