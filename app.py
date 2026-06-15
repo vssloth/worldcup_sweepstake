@@ -479,7 +479,9 @@ with tab2:
 # TAB 3 - RESULTS
 # ----------------------------
 
-with tab3:
+# ----------------------------
+# TAB 3 - RESULTS
+# ----------------------------
 
 with tab3:
 
@@ -507,10 +509,7 @@ with tab3:
 
     results_df = pd.DataFrame(rows)
 
-    html_table = results_df.to_html(
-        index=False,
-        escape=False
-    )
+    html_table = results_df.to_html(index=False, escape=False)
 
     st.markdown(
         """
@@ -550,6 +549,6 @@ with tab3:
         unsafe_allow_html=True
     )
 
-    st.markdown(results_df.to_html(index=False), unsafe_allow_html=True)
+    st.markdown(html_table, unsafe_allow_html=True)
 
 
