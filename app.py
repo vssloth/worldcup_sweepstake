@@ -85,6 +85,7 @@ def load_stormcup_data():
 
     for m in data["matches"]:
         rows.append({
+            "match_id": m["id"],   # 🔥 REQUIRED ADDITION
             "date": pd.to_datetime(m["utcDate"]).date(),
             "stage": m["stage"],
             "status": m["status"],
@@ -195,6 +196,45 @@ def compute_stormcup(df):
                 players[TEAM_OWNERS[team]] += pts
 
     return players
+
+import requests
+
+def get_team_cards(matches):
+    API_KEY = st.secrets["FOOTBALL_DATA_API_KEY"]
+    headers = {"X-Auth-Token": API_KEY}
+
+    finished = matches[matches["status"] == "FINISHED"]
+
+    cards = {}
+
+    for _, m in finished.iterrows():
+
+        match_id = m["match_id"]
+
+        r = requests.get(
+            f"https://api.football-data.org/v4/matches/{match_id}",
+            headers=headers
+        )
+
+        if r.status_code != 200:
+            continue
+
+        data = r.json()
+
+        for b in data.get("bookings", []):
+
+            team = b["team"]["name"]
+            card = b["card"]
+
+            if team not in cards:
+                cards[team] = {"Y": 0, "R": 0}
+
+            if card == "YELLOW":
+                cards[team]["Y"] += 1
+            elif card == "RED":
+                cards[team]["R"] += 1
+
+    return cards
 
 # =========================================================
 # TABS
@@ -482,7 +522,7 @@ with tab3:
         ["date"],
         ascending=False
     )
-    st.write(matches.columns)
+    
     rows = []
 
     for _, row in finished.iterrows():
@@ -546,3 +586,45 @@ with tab3:
         html_table,
         unsafe_allow_html=True
     )
+
+with tab3:
+
+    st.title("📊 Match Results + Discipline")
+
+    matches = load_stormcup_data()
+
+    st.subheader("Results")
+
+    results = matches[matches["status"] == "FINISHED"].copy()
+
+    results["score"] = (
+        results["home_team"].astype(str) + " " +
+        results["home_score"].astype(str) + " - " +
+        results["away_score"].astype(str) + " " +
+        results["away_team"].astype(str)
+    )
+
+    st.dataframe(
+        results[["date", "stage", "score"]],
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.subheader("🟨🟥 Team Discipline")
+
+    cards = get_team_cards(matches)
+
+    card_rows = []
+
+    for team, v in cards.items():
+        card_rows.append({
+            "Team": team,
+            "Yellow": v["Y"],
+            "Red": v["R"]
+        })
+
+    cards_df = pd.DataFrame(card_rows).sort_values(
+        ["Red", "Yellow"], ascending=False
+    )
+
+    st.dataframe(cards_df, use_container_width=True, hide_index=True)
