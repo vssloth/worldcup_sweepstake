@@ -210,8 +210,9 @@ import requests
 # =========================================================
 tab1, tab2, tab3 = st.tabs([
     "🏆 World Cup Sweepstakes",
-    "😺 Storm Cup",
     "⚽ Results so far"
+    "😺 Storm Cup",
+    
 ])
 
 
@@ -340,12 +341,82 @@ with tab1:
 
     st.plotly_chart(fig, use_container_width=True)
 
-
 # ----------------------------
-# TAB 2 - STORM CUP
+# TAB 2 - RESULTS
 # ----------------------------
 
 with tab2:
+
+
+    matches = load_stormcup_data()
+
+    finished = matches[
+        matches["status"] == "FINISHED"
+    ].sort_values("date", ascending=False)
+
+    rows = []
+
+    for _, row in finished.iterrows():
+
+        rows.append({
+            "Date": row["date"],
+            "Stage": str(row["stage"]).replace("_", " ").title(),
+            "Result": (
+                f"{row['home_team']} "
+                f"{int(row['home_score'])} - {int(row['away_score'])} "
+                f"{row['away_team']}"
+            )
+        })
+
+    results_df = pd.DataFrame(rows)
+
+    html_table = results_df.to_html(index=False, escape=False)
+
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            max-width: 750px;
+            padding-top: 3rem;
+        }
+
+        table {
+            margin-left: auto;
+            margin-right: auto;
+            width: auto;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #111;
+            color: white;
+            text-align: center;
+            padding: 6px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 6px;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(html_table, unsafe_allow_html=True)
+
+# ----------------------------
+# TAB 3 - STORM CUP
+# ----------------------------
+
+with tab3:
 
 
 
@@ -474,81 +545,4 @@ with tab2:
     )
 
     st.markdown(html_table, unsafe_allow_html=True)
-
-# ----------------------------
-# TAB 3 - RESULTS
-# ----------------------------
-
-# ----------------------------
-# TAB 3 - RESULTS
-# ----------------------------
-
-with tab3:
-
-    st.title("⚽ World Cup Results")
-
-    matches = load_stormcup_data()
-
-    finished = matches[
-        matches["status"] == "FINISHED"
-    ].sort_values("date", ascending=False)
-
-    rows = []
-
-    for _, row in finished.iterrows():
-
-        rows.append({
-            "Date": row["date"],
-            "Stage": str(row["stage"]).replace("_", " ").title(),
-            "Result": (
-                f"{row['home_team']} "
-                f"{int(row['home_score'])} - {int(row['away_score'])} "
-                f"{row['away_team']}"
-            )
-        })
-
-    results_df = pd.DataFrame(rows)
-
-    html_table = results_df.to_html(index=False, escape=False)
-
-    st.markdown(
-        """
-        <style>
-        .block-container {
-            max-width: 750px;
-            padding-top: 3rem;
-        }
-
-        table {
-            margin-left: auto;
-            margin-right: auto;
-            width: auto;
-            font-size: 13px;
-            border-collapse: collapse;
-        }
-
-        th {
-            background-color: #111;
-            color: white;
-            text-align: center;
-            padding: 6px;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 6px;
-            vertical-align: top;
-            white-space: nowrap;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f5f5f5;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(html_table, unsafe_allow_html=True)
-
 
