@@ -365,31 +365,53 @@ with tab2:
                 (finished_matches["away_team"] == team)
             ]
 
-            played = len(team_matches)
-
-            pts = 0
-
-            for _, r in team_matches.iterrows():
-
-                if r["stage"] == "GROUP_STAGE":
-                    if r["home_team"] == team:
-                        if r["home_score"] > r["away_score"]:
-                            pts += 3
-                        elif r["home_score"] == r["away_score"]:
-                            pts += 1
-                    else:
-                        if r["away_score"] > r["home_score"]:
-                            pts += 3
-                        elif r["home_score"] == r["away_score"]:
-                            pts += 1
-
+        played = len(team_matches)
+        
+        pts = 0
+        wins = 0
+        draws = 0
+        losses = 0
+        
+        for _, r in team_matches.iterrows():
+        
+            team_is_home = r["home_team"] == team
+            team_is_away = r["away_team"] == team
+        
+            if r["stage"] == "GROUP_STAGE":
+        
+                # Draw
+                if r["home_score"] == r["away_score"]:
+                    pts += 1
+                    draws += 1
+        
+                # Team win
+                elif (
+                    (team_is_home and r["home_score"] > r["away_score"]) or
+                    (team_is_away and r["away_score"] > r["home_score"])
+                ):
+                    pts += 3
+                    wins += 1
+        
+                # Team loss
                 else:
-                    if r["winner"] == "HOME_TEAM" and r["home_team"] == team:
-                        pts += 3
-                    elif r["winner"] == "AWAY_TEAM" and r["away_team"] == team:
-                        pts += 3
-
-            team_strings.append(f"{team} ({pts} pts, played {played})")
+                    losses += 1
+        
+            else:
+                # Knockout win
+                if (
+                    (team_is_home and r["winner"] == "HOME_TEAM") or
+                    (team_is_away and r["winner"] == "AWAY_TEAM")
+                ):
+                    pts += 3
+                    wins += 1
+        
+                # Knockout loss
+                else:
+                    losses += 1
+        
+        team_strings.append(
+            f"{team} ({pts} points - P {played}, W {wins}, D {draws}, L {losses})"
+        )
 
         rows.append({
             "Player": player,
