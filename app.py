@@ -71,24 +71,29 @@ def load_stormcup_data():
     import requests
 
     API_KEY = st.secrets["FOOTBALL_DATA_API_KEY"]
-
     headers = {"X-Auth-Token": API_KEY}
 
     url = "https://api.football-data.org/v4/competitions/WC/matches"
 
-    r = requests.get(url, headers=headers)
-    r.raise_for_status()
-
-    data = r.json()
+    try:
+        r = requests.get(url, headers=headers, timeout=20)
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        st.warning(f"Football API temporarily unavailable: {e}")
+        return pd.DataFrame(columns=[
+            "match_id", "date", "stage", "status",
+            "home_team", "away_team", "home_score", "away_score", "winner"
+        ])
 
     rows = []
 
-    for m in data["matches"]:
+    for m in data.get("matches", []):
         rows.append({
-            "match_id": m["id"],   # 🔥 REQUIRED ADDITION
+            "match_id": m.get("id"),
             "date": pd.to_datetime(m["utcDate"]).date(),
-            "stage": m["stage"],
-            "status": m["status"],
+            "stage": m.get("stage"),
+            "status": m.get("status"),
             "home_team": m["homeTeam"]["name"],
             "away_team": m["awayTeam"]["name"],
             "home_score": m["score"]["fullTime"]["home"],
