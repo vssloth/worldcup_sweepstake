@@ -482,7 +482,7 @@ with tab3:
         ["date"],
         ascending=False
     )
-
+    st.write(matches.columns)
     rows = []
 
     for _, row in finished.iterrows():
