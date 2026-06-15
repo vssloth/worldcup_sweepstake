@@ -199,9 +199,10 @@ def compute_stormcup(df):
 # =========================================================
 # TABS
 # =========================================================
-tab1, tab2 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
     "🏆 World Cup Sweepstakes",
-    "Storm Cup"
+    "😺 Storm Cup",
+    "⚽ Results so far"
 ])
 
 
@@ -464,3 +465,47 @@ with tab2:
     )
 
     st.markdown(html_table, unsafe_allow_html=True)
+
+# ----------------------------
+# TAB 3 - RESULTS
+# ----------------------------
+
+with tab3:
+
+
+    matches = load_stormcup_data()
+
+    # Sort newest first
+    matches = matches.sort_values(
+        ["date", "home_team"],
+        ascending=[False, True]
+    )
+
+    # Only show completed matches
+    finished = matches[matches["status"] == "FINISHED"]
+
+    if finished.empty:
+        st.info("No completed matches yet.")
+    else:
+
+        results = []
+
+        for _, row in finished.iterrows():
+
+            results.append({
+                "Date": row["date"],
+                "Stage": row["stage"].replace("_", " ").title(),
+                "Match": (
+                    f"{row['home_team']} "
+                    f"{int(row['home_score'])}-{int(row['away_score'])} "
+                    f"{row['away_team']}"
+                )
+            })
+
+        results_df = pd.DataFrame(results)
+
+        st.dataframe(
+            results_df,
+            use_container_width=True,
+            hide_index=True
+        )
