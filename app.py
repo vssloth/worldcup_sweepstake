@@ -204,47 +204,7 @@ def compute_stormcup(df):
 
 import requests
 
-def get_team_cards(matches):
-    API_KEY = st.secrets["FOOTBALL_DATA_API_KEY"]
-    headers = {"X-Auth-Token": API_KEY}
 
-    finished = matches[matches["status"] == "FINISHED"]
-
-    cards = {}
-
-    for _, m in finished.iterrows():
-        match_id = m["match_id"]
-
-        r = requests.get(
-            f"https://api.football-data.org/v4/matches/{match_id}",
-            headers=headers
-        )
-
-        if r.status_code != 200:
-            continue
-
-        data = r.json()
-
-        # ⚠️ IMPORTANT: events, not bookings
-        events = data.get("events", [])
-
-        for e in events:
-            etype = e.get("type", "").upper()
-            team = e.get("team", {}).get("name")
-
-            if not team:
-                continue
-
-            if team not in cards:
-                cards[team] = {"Y": 0, "R": 0}
-
-            if etype in ["YELLOW_CARD", "YELLOW"]:
-                cards[team]["Y"] += 1
-
-            elif etype in ["RED_CARD", "RED"]:
-                cards[team]["R"] += 1
-    st.write(data.keys())
-    return cards
 # =========================================================
 # TABS
 # =========================================================
@@ -596,28 +556,4 @@ with tab3:
         unsafe_allow_html=True
     )
 
-    st.subheader("🟨🟥 Team Discipline")
 
-    cards = get_team_cards(matches)
-    
-    card_rows = []
-    
-    for team, v in cards.items():
-        card_rows.append({
-            "Team": team,
-            "Yellow": v.get("Y", 0),
-            "Red": v.get("R", 0)
-        })
-    
-    cards_df = pd.DataFrame(card_rows)
-    
-    # 👉 IMPORTANT: handle empty case safely
-    if cards_df.empty:
-        cards_df = pd.DataFrame(columns=["Team", "Yellow", "Red"])
-    else:
-        cards_df = cards_df.sort_values(
-            ["Red", "Yellow"],
-            ascending=False
-        )
-    
-    st.dataframe(cards_df, use_container_width=True, hide_index=True)
