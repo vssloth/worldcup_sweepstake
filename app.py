@@ -472,40 +472,77 @@ with tab2:
 
 with tab3:
 
+    st.title("⚽ World Cup Results")
 
     matches = load_stormcup_data()
 
-    # Sort newest first
-    matches = matches.sort_values(
-        ["date", "home_team"],
-        ascending=[False, True]
+    finished = matches[
+        matches["status"] == "FINISHED"
+    ].sort_values(
+        ["date"],
+        ascending=False
     )
 
-    # Only show completed matches
-    finished = matches[matches["status"] == "FINISHED"]
+    rows = []
 
-    if finished.empty:
-        st.info("No completed matches yet.")
-    else:
+    for _, row in finished.iterrows():
 
-        results = []
+        rows.append({
+            "Date": row["date"],
+            "Stage": row["stage"].replace("_", " ").title(),
+            "Result": (
+                f"{row['home_team']} "
+                f"{int(row['home_score'])} - {int(row['away_score'])} "
+                f"{row['away_team']}"
+            )
+        })
 
-        for _, row in finished.iterrows():
+    results_df = pd.DataFrame(rows)
 
-            results.append({
-                "Date": row["date"],
-                "Stage": row["stage"].replace("_", " ").title(),
-                "Match": (
-                    f"{row['home_team']} "
-                    f"{int(row['home_score'])}-{int(row['away_score'])} "
-                    f"{row['away_team']}"
-                )
-            })
+    html_table = results_df.to_html(
+        index=False,
+        escape=False
+    )
 
-        results_df = pd.DataFrame(results)
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            max-width: 750px;
+            padding-top: 3rem;
+        }
 
-        st.dataframe(
-            results_df,
-            use_container_width=True,
-            hide_index=True
-        )
+        table {
+            margin-left: auto;
+            margin-right: auto;
+            width: auto;
+            font-size: 13px;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #111;
+            color: white;
+            text-align: center;
+            padding: 6px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 6px;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        html_table,
+        unsafe_allow_html=True
+    )
