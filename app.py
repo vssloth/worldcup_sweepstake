@@ -485,12 +485,7 @@ with tab3:
 
     matches = load_stormcup_data()
 
-    finished = matches[
-        matches["status"] == "FINISHED"
-    ].sort_values(
-        ["date"],
-        ascending=False
-    )
+    finished = matches.sort_values("date", ascending=False)
     
     rows = []
 
