@@ -243,7 +243,7 @@ def get_team_cards(matches):
 
             elif etype in ["RED_CARD", "RED"]:
                 cards[team]["R"] += 1
-
+    st.write(data.keys())
     return cards
 # =========================================================
 # TABS
