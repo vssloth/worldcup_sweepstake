@@ -240,17 +240,60 @@ with tab1:
         else:
             delta_html = f'<span style="color:gray;">• 0.0%</span>'
 
-        team_html = "<br>".join([
-            f"{t}: {latest_df[latest_df['team']==t]['champ'].values[0]:.1f}%"
-            if t in latest_df["team"].values else f"{t}: 0.0%"
-            for t in teams
-        ])
+        team_strings = []
+
+        for t in teams:
+
+            current_team = latest_df.loc[
+                latest_df["team"] == t, "champ"
+            ]
+
+            previous_team = prev_df.loc[
+                prev_df["team"] == t, "champ"
+            ]
+
+            current_val = (
+                current_team.iloc[0]
+                if len(current_team) > 0 else 0
+            )
+
+            previous_val = (
+                previous_team.iloc[0]
+                if len(previous_team) > 0 else 0
+            )
+
+            team_delta = current_val - previous_val
+
+            if team_delta > 0:
+                team_delta_html = (
+                    f'<span style="color:green;">▲ {team_delta:.1f}%</span>'
+                )
+                
+            elif team_delta < 0:
+                team_delta_html = (
+                    f'<span style="color:red;">▼ {abs(team_delta):.1f}%</span>'
+                )
+            else:
+                team_delta_html = (
+                    '<span style="color:gray;">• 0.0%</span>'
+                )
+
+            team_strings.append(
+                f"{t}: {current_val:.1f}% ({team_delta_html})"
+            )
+
+        team_html = "<br>".join(team_strings)
+
+
+        
+        
+        
+        chance_html = f"{current:.1f}% ({delta_html})"
 
         player_rows.append({
             "Rank": 0,
             "Player": player,
-            "Chance of winning": current,
-            "Change": delta_html,
+            "Chance of winning<br>(daily change)": chance_html,
             "Teams": team_html
         })
 
@@ -263,9 +306,7 @@ with tab1:
 
     player_df["Rank"] = player_df.index + 1
 
-    player_df["Chance of winning"] = player_df["Chance of winning"].map(
-        lambda x: f"{x:.1f}%"
-    )
+    
 
     html_table = player_df.to_html(index=False, escape=False)
 
