@@ -293,18 +293,23 @@ with tab1:
         player_rows.append({
             "Rank": 0,
             "Player": player,
+            "_sort": current,
             "Chance of winning<br>(daily change)": chance_html,
             "Teams": team_html
         })
+        
 
     player_df = pd.DataFrame(player_rows)
 
     player_df = player_df.sort_values(
-        "Chance of winning<br>(daily change)",
+        "_sort",
         ascending=False
     ).reset_index(drop=True)
-
+    
     player_df["Rank"] = player_df.index + 1
+
+    player_df = player_df.drop(columns=["_sort"])
+
 
     
 
