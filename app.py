@@ -300,7 +300,7 @@ with tab1:
     player_df = pd.DataFrame(player_rows)
 
     player_df = player_df.sort_values(
-        "Chance of winning",
+        "Chance of winning<br>(daily change)",
         ascending=False
     ).reset_index(drop=True)
 
