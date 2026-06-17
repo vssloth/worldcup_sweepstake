@@ -385,8 +385,20 @@ with tab1:
         markers=True
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="center",
+            x=0.5
+        ),
+        margin=dict(t=80)
+    )
 
+    st.plotly_chart(fig, use_container_width=True)
+    
+    
 # ----------------------------
 # TAB 2 - RESULTS
 # ----------------------------
