@@ -208,8 +208,9 @@ import requests
 # =========================================================
 # TABS
 # =========================================================
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🏆 World Cup Sweepstakes",
+    "💰 Bonus prizes",
     "⚽ Results so far",
     "😺 Storm Cup",
     
@@ -221,7 +222,8 @@ tab1, tab2, tab3 = st.tabs([
 # ----------------------------
 with tab1:
 
-    st.title("🏆 Chance Of Winning")
+    st.title("🏆 Chance Of Winning<br>Prizes:<br>🥇£28<br>🥈£5<br>🥄£5 (first to have all 4 teams eliminated")
+
     st.caption(f"Latest snapshot: {latest_date}")
 
     player_rows = []
@@ -397,13 +399,18 @@ with tab1:
     )
 
     st.plotly_chart(fig, use_container_width=True)
-    
-    
+
 # ----------------------------
-# TAB 2 - RESULTS
+# TAB 2 - BONUSES
 # ----------------------------
 
-with tab2:
+
+    
+# ----------------------------
+# TAB 3 - RESULTS
+# ----------------------------
+
+with tab3:
 
 
     matches = load_stormcup_data()
@@ -471,10 +478,10 @@ with tab2:
     st.markdown(html_table, unsafe_allow_html=True)
 
 # ----------------------------
-# TAB 3 - STORM CUP
+# TAB 4 - STORM CUP
 # ----------------------------
 
-with tab3:
+with tab4:
 
 
 
