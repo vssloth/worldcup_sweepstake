@@ -520,7 +520,7 @@ with tab2:
             
         
             st.info(
-                f"(**{owner}**)"
+                f"**{owner}**"
             )
             st.info(
                 f"Biggest defeat so far: **{loser}** lost **{score}** to **{winner}** "
