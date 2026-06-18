@@ -424,6 +424,50 @@ with tab2:
 
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
+        matches = load_stormcup_data()
+    
+        finished = matches[
+            matches["status"] == "FINISHED"
+        ].sort_values("date", ascending=False)
+    
+        biggest_loser = None
+        biggest_margin = -1
+        
+        for _, row in finished.iterrows():
+        
+            home_score = row["home_score"]
+            away_score = row["away_score"]
+        
+            if pd.isna(home_score) or pd.isna(away_score):
+                continue
+        
+            margin = abs(home_score - away_score)
+        
+            if margin > biggest_margin:
+        
+                biggest_margin = margin
+        
+                if home_score < away_score:
+                    biggest_loser = (
+                        row["home_team"],
+                        f"{int(home_score)}-{int(away_score)}",
+                        row["away_team"]
+                    )
+                elif away_score < home_score:
+                    biggest_loser = (
+                        row["away_team"],
+                        f"{int(away_score)}-{int(home_score)}",
+                        row["home_team"]
+                    )
+        
+        if biggest_loser:
+        
+            loser, score, winner = biggest_loser
+        
+            st.info(
+                f"📉 Biggest defeat so far: **{loser}** lost **{score}** to **{winner}** "
+                f"({biggest_margin}-goal margin)"
+            )
     
 # ----------------------------
 # TAB 3 - RESULTS
@@ -437,7 +481,7 @@ with tab3:
     finished = matches[
         matches["status"] == "FINISHED"
     ].sort_values("date", ascending=False)
-
+    
     rows = []
 
     for _, row in finished.iterrows():
