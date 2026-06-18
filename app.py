@@ -152,7 +152,7 @@ TEAM_OWNERS = {
     "Germany": "James",
     "Norway": "James",
     "Ecuador": "James",
-    "Türkiye": "James",
+    "Turkey": "James",
     "Paraguay": "James",
     "Australia": "James",
     "Czechia": "James",
