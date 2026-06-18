@@ -420,7 +420,7 @@ with tab2:
         st.write("Most cleansheets (£10 prize)")
 
     with subtab3:
-        st.write("Most red cards (£1000000 fine")
+        st.write("Most red cards (£1000000 fine)")
 
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
