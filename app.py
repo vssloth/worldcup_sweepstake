@@ -420,7 +420,10 @@ with tab2:
     with subtab2:
         st.write("Most cleansheets (£10 prize)")
         st.title("🔧 work in progress...")
-    
+
+        matches = load_stormcup_data()
+        finished = matches[matches["status"] == "FINISHED"].copy()
+        
         clean_sheets = {}
     
         for _, row in finished.iterrows():
