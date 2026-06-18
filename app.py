@@ -409,7 +409,7 @@ with tab2:
     subtab1, subtab2, subtab3, subtab4 = st.tabs([
         "Golden boot",
         "Golden glove",
-        "Naughty list"
+        "Naughty list",
         "Cricket score"
     ])
 
