@@ -463,9 +463,65 @@ with tab2:
         if biggest_loser:
         
             loser, score, winner = biggest_loser
+
+            TEAM_OWNER = {
+                "Argentina": "Miles",
+                "Portugal": "Fiona",
+                "Colombia": "Fiona",
+                "Switzerland": "Maggie",
+                "Croatia": "Helen",
+                "Senegal": "Maggie",
+                "Egypt": "Dan",
+                "Algeria": "James",
+                "Ivory Coast": "Henry",
+                "Qatar": "Janet",
+                "Saudi Arabia": "Anne",
+                "New Zealand": "James",
+                "Spain": "Fiona",
+                "Netherlands": "Grandma",
+                "Belgium": "Simy",
+                "Japan": "Rich",
+                "Mexico": "Rich",
+                "Sweden": "Simy",
+                "South Korea": "Dan",
+                "Iran": "Miles",
+                "Scotland": "Grandma",
+                "South Africa": "Henry",
+                "Jordan": "Janet",
+                "Haiti": "James",
+                "France": "Henry",
+                "Brazil": "James",
+                "Morocco": "Fiona",
+                "Uruguay": "Janet",
+                "United States": "Janet",
+                "Austria": "Anne",
+                "Canada": "Grandma",
+                "Bosnia-Herzegovina": "Helen",
+                "Ghana": "Simy",
+                "Tunisia": "Rich",
+                "Uzbekistan": "Dan",
+                "Cape Verde Islands": "Rich",
+                "England": "Miles",
+                "Germany": "Anne",
+                "Norway": "Simy",
+                "Ecuador": "Dan",
+                "Turkey": "Grandma",
+                "Paraguay": "Henry",
+                "Australia": "Maggie",
+                "Czechia": "Anne",
+                "Panama": "Helen",
+                "Iraq": "Miles",
+                "Congo DR": "Helen",
+                "Curaçao": "Maggie",
+            }
+
+            owner = TEAM_OWNER.get(loser, "Unknown")
+
+            
         
             st.info(
-                f"📉 Biggest defeat so far: **{loser}** lost **{score}** to **{winner}** "
+                f"({owner})"
+                f"Biggest defeat so far: **{loser}** lost **{score}** to **{winner}** "
                 f"({biggest_margin}-goal margin)"
             )
     
