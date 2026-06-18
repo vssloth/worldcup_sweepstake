@@ -420,6 +420,54 @@ with tab2:
     with subtab2:
         st.write("Most cleansheets (£10 prize)")
         st.title("🔧 work in progress...")
+
+        clean_sheets = {}
+        
+        for _, row in finished.iterrows():
+        
+            home_team = row["home_team"]
+            away_team = row["away_team"]
+        
+            home_score = row["home_score"]
+            away_score = row["away_score"]
+        
+            if pd.isna(home_score) or pd.isna(away_score):
+                continue
+        
+            # Home clean sheet
+            if away_score == 0:
+                clean_sheets[home_team] = clean_sheets.get(home_team, 0) + 1
+        
+            # Away clean sheet
+            if home_score == 0:
+                clean_sheets[away_team] = clean_sheets.get(away_team, 0) + 1
+
+        if clean_sheets:
+    
+        max_cs = max(clean_sheets.values())
+    
+        leaders = [
+            team
+            for team, cs in clean_sheets.items()
+            if cs == max_cs
+        ]
+    
+        owner_strings = [
+            f"{team} ({TEAM_OWNERS.get(team, 'Unknown')})"
+            for team in leaders
+        ]
+    
+        st.success(
+            f"🧤 Most clean sheets: {', '.join(owner_strings)} "
+            f"with {max_cs} clean sheet{'s' if max_cs != 1 else ''}"
+        )
+
+
+
+
+
+
+    
     with subtab3:
         st.write("Most red cards (£1000000 fine)")
         st.title("🔧 work in progress...")
