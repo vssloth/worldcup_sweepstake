@@ -223,7 +223,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
 
     st.title("🏆 Chance Of Winning")
-    st.caption("Prizes:🥇£28, 🥈£5, 🥄£5 (first to have all 4 teams eliminated")
+    st.caption("Prizes:🥇£28, 🥈£5, 🥄£5 (first to have all 4 teams eliminated)")
     st.caption(f"Latest snapshot: {latest_date}")
 
     player_rows = []
@@ -404,7 +404,26 @@ with tab1:
 # TAB 2 - BONUSES
 # ----------------------------
 
+with tab2:
+    
+    subtab1, subtab2, subtab3, subtab4 = st.tabs([
+        "Golden boot",
+        "Golden glove",
+        "Naughty list"
+        "Cricket score"
+    ])
 
+    with subtab1:
+        st.write("Top goalscorer (£10 prize)")
+
+    with subtab2:
+        st.write("Most cleansheets (£10 prize)")
+
+    with subtab3:
+        st.write("Most red cards (£1000000 fine")
+
+    with subtab4:
+        st.write("Biggest single loss (£5 prize)")
     
 # ----------------------------
 # TAB 3 - RESULTS
