@@ -520,7 +520,7 @@ with tab2:
             
         
             st.info(
-                f"({owner})"
+                f"(**{owner}**)",<br>
                 f"Biggest defeat so far: **{loser}** lost **{score}** to **{winner}** "
                 f"({biggest_margin}-goal margin)"
             )
