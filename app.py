@@ -488,7 +488,6 @@ with tab2:
         
         for _, row in finished.iterrows():
         
-        ```
         home_score = row["home_score"]
         away_score = row["away_score"]
         
@@ -526,11 +525,11 @@ with tab2:
                 "winner": winning_team,
                 "score": score
             })
-        ```
+        
         
         if biggest_losers:
         
-        ```
+        
         TEAM_OWNER = {
             "Argentina": "Miles",
             "Portugal": "Fiona",
