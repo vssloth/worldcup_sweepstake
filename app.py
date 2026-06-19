@@ -416,6 +416,15 @@ with tab2:
     with subtab1:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
+        import pandas as pd
+
+        tables = pd.read_html(
+            "https://theanalyst.com/competition/fifa-world-cup/stats"
+        )
+
+        for i, t in enumerate(tables):
+            print(i)
+            print(t.head())
 
     with subtab2:
 
