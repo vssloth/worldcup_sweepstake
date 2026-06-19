@@ -459,6 +459,25 @@ with tab2:
         
             return df
 
+        df_gs = get_goalscorers()
+        
+        # safety check
+        if df_gs.empty:
+            st.info("No goals data available yet.")
+        else:
+            # ensure correct types
+            df_gs["Goals"] = pd.to_numeric(df_gs["Goals"], errors="coerce")
+            df_gs = df_gs.dropna(subset=["Goals"])
+        
+            # sort top scorers
+            df_gs = df_gs.sort_values("Goals", ascending=False).reset_index(drop=True)
+        
+            # optional: keep only top 10
+            df_gs = df_gs.head(10)
+        
+            st.subheader("🏆 Top Scorers")
+            st.dataframe(df_gs, use_container_width=True, hide_index=True)
+            
     with subtab2:
 
         st.write("Most clean sheets (£10 prize)")
