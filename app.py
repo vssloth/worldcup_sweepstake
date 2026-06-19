@@ -448,8 +448,15 @@ with tab2:
                         })
         
             return pd.DataFrame(rows)
-        df_gs = get_goalscorers().sort_values("Goals", ascending=False)
-        st.dataframe(df_gs, use_container_width=True, hide_index=True)
+        df_gs = get_goalscorers()
+        st.write(df.columns)
+        st.write(df.head())
+        if df_gs.empty or "Goals" not in df_gs.columns:
+            st.warning("No goals data found (scraper returned empty or invalid table).")
+            st.stop()
+        
+        df_gs = df_gs.sort_values("Goals", ascending=False)
+                st.dataframe(df_gs, use_container_width=True, hide_index=True)
 
     with subtab2:
 
