@@ -418,55 +418,129 @@ with tab2:
         st.title("🔧 work in progress...")
 
     with subtab2:
-        st.write("Most cleansheets (£10 prize)")
-        st.title("🔧 work in progress...")
 
+        st.write("Most clean sheets (£10 prize)")
+        
+        
+        TEAM_OWNERS_GOLDEN = {
+            "Argentina": "Maggie",
+            "Portugal": "Helen",
+            "Morocco": "Miles",
+            "Croatia": "Fiona",
+            "Spain": "Dan",
+            "Netherlands": "Rich",
+            "Belgium": "James",
+            "France": "Henry",
+            "Brazil": "Simy",
+            "England": "Anne",
+            "Germany": "Janet",
+            "Norway": "Grandma",
+        }
+        
         matches = load_stormcup_data()
-        finished = matches[matches["status"] == "FINISHED"].copy()
+        
+        finished = matches[
+            matches["status"] == "FINISHED"
+        ].copy()
         
         clean_sheets = {}
-    
+        
         for _, row in finished.iterrows():
-    
+        
             home_team = row["home_team"]
             away_team = row["away_team"]
-    
+        
             home_score = row["home_score"]
             away_score = row["away_score"]
-    
+        
             if pd.isna(home_score) or pd.isna(away_score):
                 continue
-    
+        
             # Home clean sheet
             if away_score == 0:
-                clean_sheets[home_team] = clean_sheets.get(home_team, 0) + 1
-    
+                clean_sheets[home_team] = (
+                    clean_sheets.get(home_team, 0) + 1
+                )
+        
             # Away clean sheet
             if home_score == 0:
-                clean_sheets[away_team] = clean_sheets.get(away_team, 0) + 1
-    
-        if clean_sheets:
-    
-            max_cs = max(clean_sheets.values())
-    
-            leaders = [
-                team
-                for team, cs in clean_sheets.items()
-                if cs == max_cs
-            ]
-    
-            owner_strings = [
-                f"{team} ({TEAM_OWNERS.get(team, 'Unknown')})"
-                for team in leaders
-            ]
-    
-            st.success(
-                f"🧤 Most clean sheets: {', '.join(owner_strings)} "
-                f"with {max_cs} clean sheet{'s' if max_cs != 1 else ''}"
+                clean_sheets[away_team] = (
+                    clean_sheets.get(away_team, 0) + 1
+                )
+        
+        rows = []
+        
+        for team, cs in clean_sheets.items():
+        
+            owner = TEAM_OWNERS_GOLDEN.get(team, "🐾 Holly")
+        
+            rows.append({
+                "Country": team,
+                "Clean Sheets": cs,
+                "Owner": owner
+            })
+        
+        df_cs = pd.DataFrame(rows)
+        
+        if not df_cs.empty:
+        
+            df_cs = df_cs.sort_values(
+                ["Clean Sheets", "Country"],
+                ascending=[False, True]
+            ).reset_index(drop=True)
+        
+            html_table = df_cs.to_html(
+                index=False,
+                escape=False
             )
-    
+        
+            st.markdown(
+                """
+                <style>
+                .block-container {
+                    max-width: 750px;
+                    padding-top: 3rem;
+                }
+        
+                table {
+                    margin-left: auto;
+                    margin-right: auto;
+                    width: auto;
+                    font-size: 13px;
+                    border-collapse: collapse;
+                }
+        
+                th {
+                    background-color: #111;
+                    color: white;
+                    text-align: center;
+                    padding: 6px;
+                    white-space: nowrap;
+                }
+        
+                td {
+                    padding: 6px;
+                    vertical-align: top;
+                    white-space: nowrap;
+                }
+        
+                tr:nth-child(even) {
+                    background-color: #f5f5f5;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+        
+            st.markdown(
+                html_table,
+                unsafe_allow_html=True
+            )
+        
         else:
             st.info("No clean sheets recorded yet.")
+        
+        
      
     with subtab3:
         st.write("Most red cards (£1000000 fine)")
