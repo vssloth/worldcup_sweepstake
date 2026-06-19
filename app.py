@@ -481,6 +481,30 @@ with tab2:
             })
         
         df_cs = pd.DataFrame(rows)
+
+        # Find leading non-Holly entries
+        
+        non_holly = df_cs[df_cs["Owner"] != "🐾 Holly"]
+        
+        if not non_holly.empty:
+        
+            max_cs = non_holly["Clean Sheets"].max()
+        
+            leaders = non_holly[
+                non_holly["Clean Sheets"] == max_cs
+            ]
+        
+            leader_text = ", ".join(
+                [
+                    f"{row['Country']} ({row['Owner']})"
+                    for _, row in leaders.iterrows()
+                ]
+            )
+        
+            st.success(
+                f"🧤 Current leader{'s' if len(leaders) > 1 else ''}: "
+                f"{leader_text} with {max_cs} clean sheet{'s' if max_cs != 1 else ''}"
+            )
         
         if not df_cs.empty:
         
