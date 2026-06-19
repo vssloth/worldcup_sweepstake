@@ -423,51 +423,41 @@ with tab2:
     
         @st.cache_data(ttl=3600)
         def get_goalscorers():
+            import requests
+            import pandas as pd
+        
             url = "https://www.bbc.co.uk/sport/football/world-cup/top-scorers"
-            headers = {"User-Agent": "Mozilla/5.0"}
-    
+        
+            headers = {
+                "User-Agent": "Mozilla/5.0"
+            }
+        
             r = requests.get(url, headers=headers, timeout=20)
-    
+        
             if r.status_code != 200:
                 return pd.DataFrame(columns=["Player", "Goals"])
-    
-            soup = BeautifulSoup(r.text, "html.parser")
-    
+        
+            text = r.text
+        
+            # fallback extraction: look for numeric goal patterns near names
+            import re
+        
+            # very loose extraction: "Name ... X goals"
+            pattern = re.findall(r'([A-Za-zÀ-ÿ\'\-\s]+)\s+(\d+)\s+goals?', text)
+        
             rows = []
-    
-            # BBC structure: rows usually contain player + goals in td cells
-            for tr in soup.find_all("tr"):
-                cols = [c.get_text(strip=True) for c in tr.find_all("td")]
-    
-                # Expect at least name + goals somewhere in row
-                if len(cols) >= 2:
-                    name = cols[0]
-                    goals_raw = cols[-1]  # goals usually last column
-    
-                    try:
-                        goals = int(goals_raw)
-                    except:
-                        continue
-    
-                    if goals > 0:
-                        rows.append({
-                            "Player": name,
-                            "Goals": goals
-                        })
-    
-            return pd.DataFrame(rows)
-    
-        df_gs = get_goalscorers()
-    
-        # 🔒 IMPORTANT: do NOT reference outer df anymore
-        if df_gs.empty:
-            st.info("No goals data available yet (BBC table not populated or structure changed).")
-            st.stop()
-    
-        df_gs = df_gs.sort_values("Goals", ascending=False)
-    
-        st.dataframe(df_gs, use_container_width=True, hide_index=True)
-    
+        
+            for name, goals in pattern:
+                try:
+                    g = int(goals)
+                    if g > 0:
+                        rows.append({"Player": name.strip(), "Goals": g})
+                except:
+                    continue
+        
+            df = pd.DataFrame(rows).drop_duplicates()
+        
+            return df
 
     with subtab2:
 
