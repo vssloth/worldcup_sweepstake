@@ -733,41 +733,48 @@ with tab2:
     
         DEFAULT_OWNER = "Holly"
     
-        @st.cache_data(ttl=3600)
+       @st.cache_data(ttl=3600)
         def get_red_cards_fbref():
-    
+        
+            import requests
+            import pandas as pd
+        
             url = "https://fbref.com/en/comps/1/misc/World-Cup-Stats"
-    
-            # FBref tables are HTML-based → this is reliable
-            tables = pd.read_html(url)
-    
-            # Find the table that contains "Red Cards"
+        
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Accept-Language": "en-US,en;q=0.9",
+            }
+        
+            r = requests.get(url, headers=headers, timeout=20)
+        
+            # IMPORTANT: avoid crashing app if blocked
+            if r.status_code != 200:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
+        
+            # pass HTML TEXT instead of URL (this avoids urllib layer)
+            tables = pd.read_html(r.text)
+        
             target = None
-    
+        
             for t in tables:
-                if "Red Cards" in " ".join(t.columns.astype(str)):
+                if any("Red" in str(col) for col in t.columns):
                     target = t
                     break
-    
+        
             if target is None:
                 return pd.DataFrame(columns=["Team", "Red Cards"])
-    
-            # FBref columns vary slightly → normalize
-            for col in target.columns:
-                if "Red" in str(col):
-                    red_col = col
-                if "Squad" in str(col):
-                    team_col = col
-    
+        
+            # detect columns safely
+            team_col = [c for c in target.columns if "Squad" in str(c) or "Team" in str(c)][0]
+            red_col = [c for c in target.columns if "Red" in str(c)][0]
+        
             df = target[[team_col, red_col]].copy()
             df.columns = ["Team", "Red Cards"]
-    
+        
             df["Red Cards"] = pd.to_numeric(df["Red Cards"], errors="coerce").fillna(0).astype(int)
-    
-            df = df[df["Red Cards"] > 0]
-    
-            return df
-    
+        
+            return df[df["Red Cards"] > 0]    
     
         df_rc = get_red_cards_fbref()
     
