@@ -488,27 +488,33 @@ with tab2:
         # ----------------------------
         df = df.sort_values("Goals", ascending=False).reset_index(drop=True)
     
+
+    
         # ----------------------------
         # WINNER LOGIC (EXCLUDE HOLLY)
         # ----------------------------
-        non_holly = df[df["Owner"] != DEFAULT_OWNER]
-    
+        non_holly = df[df["Owner"] != "🐾 Holly"]
+        
         if not non_holly.empty:
             max_goals = non_holly["Goals"].max()
-    
             winners = non_holly[non_holly["Goals"] == max_goals]
-    
-            winner_names = ", ".join(
+        
+            # build inner player text
+            player_text = ", ".join(
                 f"{r['Player']} ({r['Team']})"
                 for _, r in winners.iterrows()
             )
-    
+        
+            # build owner list (could be multiple tied owners)
+            owners = non_holly[non_holly["Goals"] == max_goals]["Owner"].unique()
+            owner_text = ", ".join(owners)
+        
             st.success(
-                f"🏆 Current Golden Boot leader(s): {winner_names} "
-                f"with {max_goals} goals"
+                f"Current leader: **{owner_text}** ({player_text} with {max_goals} goals)"
             )
         else:
             st.info("No eligible (non-Holly) Golden Boot leaders yet.")
+
     
         # ----------------------------
         # TABLE OUTPUT (BELOW CAPTION + TITLE)
