@@ -720,11 +720,12 @@ with tab2:
             import requests
             import pandas as pd
         
-            url = "https://www.fotmob.com/api/leagues/77/stats"
+            url = "https://www.fotmob.com/api/stats"
         
             params = {
-                "season": 24254,
-                "type": "total_red_card_team"
+                "seasonId": 24254,
+                "type": "team",
+                "stat": "total_red_card"
             }
         
             headers = {
@@ -733,23 +734,28 @@ with tab2:
             }
         
             r = requests.get(url, params=params, headers=headers, timeout=20)
-            r.raise_for_status()
+        
+            if r.status_code != 200:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
         
             data = r.json()
         
             rows = []
         
-            # structure is usually: data["table"]["data"] OR similar
-            table = data.get("table", {}).get("data", [])
+            # This structure is more reliable for FotMob stats
+            try:
+                items = data.get("stats", {}).get("data", [])
+            except:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
         
-            for item in table:
+            for item in items:
                 team = item.get("team", {}).get("name")
-                value = item.get("value", 0)
+                value = item.get("statValue")
         
-                if team:
+                if team and value is not None:
                     rows.append({
                         "Team": team,
-                        "Red Cards": int(value or 0)
+                        "Red Cards": int(value)
                     })
         
             return pd.DataFrame(rows)
