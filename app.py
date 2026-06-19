@@ -713,52 +713,122 @@ with tab2:
     with subtab3:
         st.write("Most red cards (£1,000,000 fine)")
         st.title("🔧 work in progress...")
-
+    
+        import pandas as pd
+    
+        TEAM_OWNERS_GOLDEN = {
+            "Argentina": "Miles",
+            "Portugal": "Helen",
+            "Morocco": "Miles",
+            "Croatia": "Fiona",
+            "Spain": "Dan",
+            "Netherlands": "Rich",
+            "Belgium": "James",
+            "France": "Henry",
+            "Brazil": "Simy",
+            "England": "Anne",
+            "Germany": "Janet",
+            "Norway": "Grandma",
+        }
+    
+        DEFAULT_OWNER = "Holly"
+    
         @st.cache_data(ttl=3600)
-        def get_red_cards():
-        
-            import requests
-            import pandas as pd
-        
-            url = "https://www.fotmob.com/api/stats"
-        
-            params = {
-                "seasonId": 24254,
-                "type": "team",
-                "stat": "total_red_card"
-            }
-        
-            headers = {
-                "User-Agent": "Mozilla/5.0",
-                "Accept": "application/json"
-            }
-        
-            r = requests.get(url, params=params, headers=headers, timeout=20)
-        
-            if r.status_code != 200:
+        def get_red_cards_fbref():
+    
+            url = "https://fbref.com/en/comps/1/misc/World-Cup-Stats"
+    
+            # FBref tables are HTML-based → this is reliable
+            tables = pd.read_html(url)
+    
+            # Find the table that contains "Red Cards"
+            target = None
+    
+            for t in tables:
+                if "Red Cards" in " ".join(t.columns.astype(str)):
+                    target = t
+                    break
+    
+            if target is None:
                 return pd.DataFrame(columns=["Team", "Red Cards"])
-        
-            data = r.json()
-        
-            rows = []
-        
-            # This structure is more reliable for FotMob stats
-            try:
-                items = data.get("stats", {}).get("data", [])
-            except:
-                return pd.DataFrame(columns=["Team", "Red Cards"])
-        
-            for item in items:
-                team = item.get("team", {}).get("name")
-                value = item.get("statValue")
-        
-                if team and value is not None:
-                    rows.append({
-                        "Team": team,
-                        "Red Cards": int(value)
-                    })
-        
-            return pd.DataFrame(rows)
+    
+            # FBref columns vary slightly → normalize
+            for col in target.columns:
+                if "Red" in str(col):
+                    red_col = col
+                if "Squad" in str(col):
+                    team_col = col
+    
+            df = target[[team_col, red_col]].copy()
+            df.columns = ["Team", "Red Cards"]
+    
+            df["Red Cards"] = pd.to_numeric(df["Red Cards"], errors="coerce").fillna(0).astype(int)
+    
+            df = df[df["Red Cards"] > 0]
+    
+            return df
+    
+    
+        df_rc = get_red_cards_fbref()
+    
+        if df_rc.empty:
+            st.info("No red cards recorded yet.")
+            st.stop()
+    
+        # ----------------------------
+        # ADD OWNER COLUMN
+        # ----------------------------
+        df_rc["Owner"] = df_rc["Team"].apply(
+            lambda x: TEAM_OWNERS_GOLDEN.get(x, DEFAULT_OWNER)
+        )
+    
+        # ----------------------------
+        # SORT
+        # ----------------------------
+        df_rc = df_rc.sort_values("Red Cards", ascending=False)
+    
+        # ----------------------------
+        # SHOW TABLE
+        # ----------------------------
+        html_table = df_rc.to_html(index=False, escape=False)
+    
+        st.markdown(
+            """
+            <style>
+            .block-container {
+                max-width: 750px;
+                padding-top: 3rem;
+            }
+    
+            table {
+                margin-left: auto;
+                margin-right: auto;
+                width: auto;
+                font-size: 13px;
+                border-collapse: collapse;
+            }
+    
+            th {
+                background-color: #111;
+                color: white;
+                text-align: center;
+                padding: 6px;
+            }
+    
+            td {
+                padding: 6px;
+                white-space: nowrap;
+            }
+    
+            tr:nth-child(even) {
+                background-color: #f5f5f5;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    
+        st.markdown(html_table, unsafe_allow_html=True)    
     
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
