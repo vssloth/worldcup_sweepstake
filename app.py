@@ -439,7 +439,7 @@ with tab2:
             "Norway": "Grandma",
         }
     
-        DEFAULT_OWNER = "Holly"
+        DEFAULT_OWNER = "🐾 Holly"
     
         # ----------------------------
         # FETCH SCORERS
@@ -478,6 +478,29 @@ with tab2:
             st.warning("No Golden Boot data available yet.")
             st.stop()
     
+
+    
+        # ----------------------------
+        # WINNER LOGIC (EXCLUDE HOLLY)
+        # ----------------------------
+        non_holly = df[df["Owner"] != "🐾 Holly"]
+    
+        if not non_holly.empty:
+            max_goals = non_holly["Goals"].max()
+    
+            winners = non_holly[non_holly["Goals"] == max_goals]
+    
+            winner_names = ", ".join(
+                f"{r['Player']} ({r['Team']})"
+                for _, r in winners.iterrows()
+            )
+    
+            st.success(
+                f"🏆 Current Golden Boot leader(s): {winner_names} "
+                f"with {max_goals} goals"
+            )
+        else:
+            st.info("No eligible (non-Holly) Golden Boot leaders yet.")
         # ----------------------------
         # ADD OWNER COLUMN
         # ----------------------------
@@ -534,29 +557,6 @@ with tab2:
         )
     
         st.markdown(html_table, unsafe_allow_html=True)
-    
-        # ----------------------------
-        # WINNER LOGIC (EXCLUDE HOLLY)
-        # ----------------------------
-        non_holly = df[df["Owner"] != "Holly"]
-    
-        if not non_holly.empty:
-            max_goals = non_holly["Goals"].max()
-    
-            winners = non_holly[non_holly["Goals"] == max_goals]
-    
-            winner_names = ", ".join(
-                f"{r['Player']} ({r['Team']})"
-                for _, r in winners.iterrows()
-            )
-    
-            st.success(
-                f"🏆 Current Golden Boot leader(s): {winner_names} "
-                f"with {max_goals} goals"
-            )
-        else:
-            st.info("No eligible (non-Holly) Golden Boot leaders yet.")
-
             
     with subtab2:
 
