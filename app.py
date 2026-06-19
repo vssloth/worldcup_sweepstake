@@ -417,9 +417,7 @@ with tab2:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
         
-        tables = pd.read_html("https://theanalyst.com/competition/fifa-world-cup/stats")
-        st.write(len(tables))
-        st.write(tables[0].head())
+
 
         import requests
         import pandas as pd
