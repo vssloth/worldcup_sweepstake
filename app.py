@@ -496,13 +496,13 @@ with tab2:
         
             leader_text = ", ".join(
                 [
-                    f"{row['Country']} ({row['Owner']})"
+                    f"**{row['Owner']}** ({row['Country']})"
                     for _, row in leaders.iterrows()
                 ]
             )
         
             st.success(
-                f"🧤 Current leader{'s' if len(leaders) > 1 else ''}: "
+                f"Current leader{'s' if len(leaders) > 1 else ''}: "
                 f"{leader_text} with {max_cs} clean sheet{'s' if max_cs != 1 else ''}"
             )
         
