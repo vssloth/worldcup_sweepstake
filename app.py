@@ -416,44 +416,36 @@ with tab2:
     with subtab1:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
-        
-
 
         import requests
-        import pandas as pd
         from bs4 import BeautifulSoup
+        import pandas as pd
     
         @st.cache_data(ttl=3600)
         def get_goalscorers():
-            url = "https://theanalyst.com/competition/fifa-world-cup/stats"
+            url = "https://www.bbc.co.uk/sport/football/world-cup/top-scorers"
+            headers = {"User-Agent": "Mozilla/5.0"}
     
-            headers = {
-                "User-Agent": "Mozilla/5.0"
-            }
+            r = requests.get(url, headers=headers, timeout=20)
     
-            try:
-                r = requests.get(url, headers=headers, timeout=15)
-                r.raise_for_status()
-            except Exception as e:
-                st.error(f"Failed to fetch stats: {e}")
+            if r.status_code != 200:
                 return pd.DataFrame(columns=["Player", "Goals"])
     
             soup = BeautifulSoup(r.text, "html.parser")
     
             rows = []
     
-            # Try all table rows
-            for row in soup.find_all("tr"):
-                cols = [c.get_text(strip=True) for c in row.find_all("td")]
+            # BBC structure: rows usually contain player + goals in td cells
+            for tr in soup.find_all("tr"):
+                cols = [c.get_text(strip=True) for c in tr.find_all("td")]
     
-                # Expect at least: Name, Apps, Mins, Goals
-                if len(cols) >= 4:
+                # Expect at least name + goals somewhere in row
+                if len(cols) >= 2:
                     name = cols[0]
-                    goals = cols[3]
+                    goals_raw = cols[-1]  # goals usually last column
     
-                    # clean + validate goals
                     try:
-                        goals = int(goals)
+                        goals = int(goals_raw)
                     except:
                         continue
     
@@ -463,22 +455,19 @@ with tab2:
                             "Goals": goals
                         })
     
-            df = pd.DataFrame(rows)
-    
-            if not df.empty:
-                df = df.sort_values("Goals", ascending=False).reset_index(drop=True)
-    
-            return df
-    
+            return pd.DataFrame(rows)
     
         df_gs = get_goalscorers()
     
-        # 🔴 IMPORTANT FIX: use df_gs, not df
+        # 🔒 IMPORTANT: do NOT reference outer df anymore
         if df_gs.empty:
-            st.warning("No goals data found yet.")            
-            
+            st.info("No goals data available yet (BBC table not populated or structure changed).")
+            st.stop()
+    
+        df_gs = df_gs.sort_values("Goals", ascending=False)
     
         st.dataframe(df_gs, use_container_width=True, hide_index=True)
+    
 
     with subtab2:
 
