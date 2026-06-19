@@ -417,46 +417,66 @@ with tab2:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
 
+
         import requests
-        from bs4 import BeautifulSoup
         import pandas as pd
-        
+        from bs4 import BeautifulSoup
+    
+        @st.cache_data(ttl=3600)
         def get_goalscorers():
             url = "https://theanalyst.com/competition/fifa-world-cup/stats"
-        
+    
             headers = {
                 "User-Agent": "Mozilla/5.0"
             }
-        
-            r = requests.get(url, headers=headers)
+    
+            try:
+                r = requests.get(url, headers=headers, timeout=15)
+                r.raise_for_status()
+            except Exception as e:
+                st.error(f"Failed to fetch stats: {e}")
+                return pd.DataFrame(columns=["Player", "Goals"])
+    
             soup = BeautifulSoup(r.text, "html.parser")
-        
+    
             rows = []
-        
-            # NOTE: you will likely need to adjust selector once we inspect HTML
-            for row in soup.select("tr"):
-                cols = [c.get_text(strip=True) for c in row.select("td")]
-        
+    
+            # Try all table rows
+            for row in soup.find_all("tr"):
+                cols = [c.get_text(strip=True) for c in row.find_all("td")]
+    
+                # Expect at least: Name, Apps, Mins, Goals
                 if len(cols) >= 4:
                     name = cols[0]
                     goals = cols[3]
-        
-                    if goals.isdigit() and int(goals) > 0:
+    
+                    # clean + validate goals
+                    try:
+                        goals = int(goals)
+                    except:
+                        continue
+    
+                    if goals > 0:
                         rows.append({
                             "Player": name,
-                            "Goals": int(goals)
+                            "Goals": goals
                         })
-        
-            return pd.DataFrame(rows)
+    
+            df = pd.DataFrame(rows)
+    
+            if not df.empty:
+                df = df.sort_values("Goals", ascending=False).reset_index(drop=True)
+    
+            return df
+    
+    
         df_gs = get_goalscorers()
-        st.write(df.columns)
-        st.write(df.head())
-        if df_gs.empty or "Goals" not in df_gs.columns:
-            st.warning("No goals data found (scraper returned empty or invalid table).")
+    
+        # 🔴 IMPORTANT FIX: use df_gs, not df
+        if df_gs.empty:
+            st.warning("No goals data found yet.")
             st.stop()
-        
-        df_gs = df_gs.sort_values("Goals", ascending=False)
-                
+    
         st.dataframe(df_gs, use_container_width=True, hide_index=True)
 
     with subtab2:
