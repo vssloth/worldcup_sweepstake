@@ -708,10 +708,157 @@ with tab2:
             st.info("No clean sheets recorded yet.")
         
         
-     
+
+
     with subtab3:
-        st.write("Most red cards (£1000000 fine)")
+        st.write("Most red cards (£1,000,000 fine)")
         st.title("🔧 work in progress...")
+    
+        matches = load_stormcup_data()
+        finished = matches[matches["status"] == "FINISHED"].copy()
+    
+        # ----------------------------
+        # RED CARD COUNT
+        # ----------------------------
+        red_cards = {}
+    
+        for _, row in finished.iterrows():
+    
+            home = row["home_team"]
+            away = row["away_team"]
+    
+            # adjust keys if API differs
+            home_red = row.get("home_red_cards", 0) or 0
+            away_red = row.get("away_red_cards", 0) or 0
+    
+            red_cards[home] = red_cards.get(home, 0) + home_red
+            red_cards[away] = red_cards.get(away, 0) + away_red
+    
+        # ----------------------------
+        # BUILD TABLE
+        # ----------------------------
+        df_rc = pd.DataFrame([
+            {
+                "Team": team,
+                "Red Cards": value
+            }
+            for team, value in red_cards.items()
+            if value > 0
+        ])
+    
+        if df_rc.empty:
+            st.info("No red cards recorded yet.")
+            st.stop()
+    
+        # ----------------------------
+        # OWNER MAPPING (YOU FILL THIS)
+        # ----------------------------
+        TEAM_OWNERS_RED = {
+        "Argentina": "Daniel",
+        "Portugal": "Daniel",
+        "Colombia": "Daniel",
+        "Switzerland": "Daniel",
+        "Croatia": "Daniel",
+        "Senegal": "Daniel",
+        "Egypt": "Daniel",
+        "Algeria": "Daniel",
+        "Ivory Coast": "Daniel",
+        "Qatar": "Daniel",
+        "Saudi Arabia": "Daniel",
+        "New Zealand": "Daniel",
+        "Spain": "Helen",
+        "Netherlands": "Helen",
+        "Belgium": "Helen",
+        "Japan": "Helen",
+        "Mexico": "Helen",
+        "Sweden": "Helen",
+        "South Korea": "Helen",
+        "Iran": "Helen",
+        "Scotland": "Helen",
+        "South Africa": "Helen",
+        "Jordan": "Helen",
+        "Haiti": "Helen",
+        "France": "Maggie",
+        "Brazil": "Maggie",
+        "Morocco": "Maggie",
+        "Uruguay": "Maggie",
+        "United States": "Maggie",
+        "Austria": "Maggie",
+        "Canada": "Maggie",
+        "Bosnia-Herzegovina": "Maggie",
+        "Ghana": "Maggie",
+        "Tunisia": "Maggie",
+        "Uzbekistan": "Maggie",
+        "Cape Verde Islands": "Maggie",
+        "England": "James",
+        "Germany": "James",
+        "Norway": "James",
+        "Ecuador": "James",
+        "Turkey": "James",
+        "Paraguay": "James",
+        "Australia": "James",
+        "Czechia": "James",
+        "Panama": "James",
+        "Iraq": "James",
+        "Congo DR": "James",
+        "Curaçao": "James",
+        }
+    
+        DEFAULT_OWNER = "Unassigned"
+    
+        df_rc["Owner"] = df_rc["Team"].apply(
+            lambda x: TEAM_OWNERS_RED.get(x, DEFAULT_OWNER)
+        )
+    
+        # ----------------------------
+        # SORT
+        # ----------------------------
+        df_rc = df_rc.sort_values("Red Cards", ascending=False).reset_index(drop=True)
+    
+        # ----------------------------
+        # FORMAT TABLE (same style as others)
+        # ----------------------------
+        html_table = df_rc.to_html(index=False, escape=False)
+    
+        st.markdown(
+            """
+            <style>
+            .block-container {
+                max-width: 750px;
+                padding-top: 3rem;
+            }
+    
+            table {
+                margin-left: auto;
+                margin-right: auto;
+                width: auto;
+                font-size: 13px;
+                border-collapse: collapse;
+            }
+    
+            th {
+                background-color: #111;
+                color: white;
+                text-align: center;
+                padding: 6px;
+                white-space: nowrap;
+            }
+    
+            td {
+                padding: 6px;
+                vertical-align: top;
+                white-space: nowrap;
+            }
+    
+            tr:nth-child(even) {
+                background-color: #f5f5f5;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    
+        st.markdown(html_table, unsafe_allow_html=True)
 
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
