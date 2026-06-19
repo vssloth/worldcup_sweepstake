@@ -575,7 +575,7 @@ with tab2:
     
         if biggest_losers:
     
-            st.info(
+            st.write(
                 f"{len(biggest_losers)} team(s) tied for biggest defeat "
                 f"(margin {largest_margin})"
             )
