@@ -711,10 +711,12 @@ with tab2:
 
 
     with subtab3:
+    
         st.write("Most red cards (£1,000,000 fine)")
-        st.title("🔧 work in progress...")
+        st.title("🔧 Red Cards Leaderboard")
     
         import pandas as pd
+        import requests
     
         TEAM_OWNERS_GOLDEN = {
             "Argentina": "Miles",
@@ -733,48 +735,42 @@ with tab2:
     
         DEFAULT_OWNER = "Holly"
     
-       @st.cache_data(ttl=3600)
+        @st.cache_data(ttl=3600)
         def get_red_cards_fbref():
-        
-            import requests
-            import pandas as pd
-        
+    
             url = "https://fbref.com/en/comps/1/misc/World-Cup-Stats"
-        
+    
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                 "Accept-Language": "en-US,en;q=0.9",
             }
-        
+    
             r = requests.get(url, headers=headers, timeout=20)
-        
-            # IMPORTANT: avoid crashing app if blocked
+    
             if r.status_code != 200:
                 return pd.DataFrame(columns=["Team", "Red Cards"])
-        
-            # pass HTML TEXT instead of URL (this avoids urllib layer)
+    
             tables = pd.read_html(r.text)
-        
+    
             target = None
-        
+    
             for t in tables:
                 if any("Red" in str(col) for col in t.columns):
                     target = t
                     break
-        
+    
             if target is None:
                 return pd.DataFrame(columns=["Team", "Red Cards"])
-        
-            # detect columns safely
+    
             team_col = [c for c in target.columns if "Squad" in str(c) or "Team" in str(c)][0]
             red_col = [c for c in target.columns if "Red" in str(c)][0]
-        
+    
             df = target[[team_col, red_col]].copy()
             df.columns = ["Team", "Red Cards"]
-        
+    
             df["Red Cards"] = pd.to_numeric(df["Red Cards"], errors="coerce").fillna(0).astype(int)
-        
-            return df[df["Red Cards"] > 0]    
+    
+            return df[df["Red Cards"] > 0]
     
         df_rc = get_red_cards_fbref()
     
@@ -782,21 +778,12 @@ with tab2:
             st.info("No red cards recorded yet.")
             st.stop()
     
-        # ----------------------------
-        # ADD OWNER COLUMN
-        # ----------------------------
         df_rc["Owner"] = df_rc["Team"].apply(
             lambda x: TEAM_OWNERS_GOLDEN.get(x, DEFAULT_OWNER)
         )
     
-        # ----------------------------
-        # SORT
-        # ----------------------------
         df_rc = df_rc.sort_values("Red Cards", ascending=False)
     
-        # ----------------------------
-        # SHOW TABLE
-        # ----------------------------
         html_table = df_rc.to_html(index=False, escape=False)
     
         st.markdown(
@@ -835,7 +822,7 @@ with tab2:
             unsafe_allow_html=True
         )
     
-        st.markdown(html_table, unsafe_allow_html=True)    
+        st.markdown(html_table, unsafe_allow_html=True)   
     
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
