@@ -682,7 +682,7 @@ with tab2:
     
                 owner = TEAM_OWNER.get(result["team"], "Unknown")
     
-                st.info(f"**{owner}**")
+                st.success(f"**{owner}**")
     
                 st.write(
                     f"**{result['team']}** lost {result['score']} "
