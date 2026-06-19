@@ -488,13 +488,13 @@ with tab2:
         
         for _, row in finished.iterrows():
         
-        home_score = row["home_score"]
-        away_score = row["away_score"]
-        
-        if pd.isna(home_score) or pd.isna(away_score):
-            continue
-        
-        margin = abs(home_score - away_score)
+            home_score = row["home_score"]
+            away_score = row["away_score"]
+            
+            if pd.isna(home_score) or pd.isna(away_score):
+                continue
+            
+            margin = abs(home_score - away_score)
         
         if margin == 0:
             continue
