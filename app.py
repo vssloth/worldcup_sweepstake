@@ -576,8 +576,8 @@ with tab2:
         if biggest_losers:
     
             st.write(
-                f"{len(biggest_losers)} teams tied for biggest defeat "
-                f"({int(largest_margin)} goal{'s' if largest_margin != 1 else ''})"
+                f"{len(biggest_losers)} teams tied on "
+                f"{int(largest_margin)} goal{'s' if largest_margin != 1 else ''}"
             )
     
             for result in biggest_losers:
