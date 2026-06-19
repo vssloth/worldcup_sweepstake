@@ -480,56 +480,48 @@ with tab2:
             matches["status"] == "FINISHED"
         ].sort_values("date", ascending=False)
     
-        biggest_loser = None
-        biggest_margin = -1
-
         largest_margin = 0
         biggest_losers = []
-        
+    
         for _, row in finished.iterrows():
-        
+    
             home_score = row["home_score"]
             away_score = row["away_score"]
-            
+    
             if pd.isna(home_score) or pd.isna(away_score):
                 continue
-            
+    
             margin = abs(home_score - away_score)
-        
-        if margin == 0:
-            continue
-        
-        if home_score < away_score:
-            losing_team = row["home_team"]
-            winning_team = row["away_team"]
-            score = f"{int(home_score)}-{int(away_score)}"
-        else:
-            losing_team = row["away_team"]
-            winning_team = row["home_team"]
-            score = f"{int(away_score)}-{int(home_score)}"
-        
-        if margin > largest_margin:
-        
-            largest_margin = margin
-        
-            biggest_losers = [{
-                "team": losing_team,
-                "winner": winning_team,
-                "score": score
-            }]
-        
-        elif margin == largest_margin:
-        
-            biggest_losers.append({
-                "team": losing_team,
-                "winner": winning_team,
-                "score": score
-            })
-        
-        
-        if biggest_losers:
-        
-        
+    
+            if margin == 0:
+                continue
+    
+            # determine loser + winner
+            if home_score < away_score:
+                losing_team = row["home_team"]
+                winning_team = row["away_team"]
+                score = f"{int(home_score)}-{int(away_score)}"
+            else:
+                losing_team = row["away_team"]
+                winning_team = row["home_team"]
+                score = f"{int(away_score)}-{int(home_score)}"
+    
+            # update leaderboard
+            if margin > largest_margin:
+                largest_margin = margin
+                biggest_losers = [{
+                    "team": losing_team,
+                    "winner": winning_team,
+                    "score": score
+                }]
+    
+            elif margin == largest_margin:
+                biggest_losers.append({
+                    "team": losing_team,
+                    "winner": winning_team,
+                    "score": score
+                })
+    
         TEAM_OWNER = {
             "Argentina": "Miles",
             "Portugal": "Fiona",
@@ -580,40 +572,26 @@ with tab2:
             "Congo DR": "Helen",
             "Curaçao": "Maggie",
         }
-        
-        owner_strings = []
-        
-        for loser_info in biggest_losers:
-            owner = TEAM_OWNER.get(loser_info["team"], "Unknown")
-        
-            owner_strings.append(
-                f"**{loser_info['team']}** ({owner}) "
-                f"lost {loser_info['score']} to "
-                f"**{loser_info['winner']}**"
-            )
-
-      
-        
+    
         if biggest_losers:
-        
-        st.info(
-            f"{len(biggest_losers)} team(s) tied for biggest defeat"
-        )
-        
-        for result in biggest_losers:
-        
-            owner = TEAM_OWNER.get(result["team"], "Unknown")
-        
+    
             st.info(
-                f"**{owner}**"
-            )
-        
-            st.write(
-                f"Biggest defeat so far: **{result['team']}** "
-                f"lost **{result['score']}** to **{result['winner']}** "
-                f"({largest_margin}-goal margin)"
+                f"{len(biggest_losers)} team(s) tied for biggest defeat "
+                f"(margin {largest_margin})"
             )
     
+            for result in biggest_losers:
+    
+                owner = TEAM_OWNER.get(result["team"], "Unknown")
+    
+                st.info(f"**{owner}**")
+    
+                st.write(
+                    f"**{result['team']}** lost {result['score']} "
+                    f"to **{result['winner']}**"
+                )
+        else:
+            st.info("No matches found yet.")    
 # ----------------------------
 # TAB 3 - RESULTS
 # ----------------------------
