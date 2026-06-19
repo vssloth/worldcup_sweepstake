@@ -417,66 +417,7 @@ with tab2:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
 
-        import requests
-        from bs4 import BeautifulSoup
-        import pandas as pd
-    
-        @st.cache_data(ttl=3600)
-        def get_goalscorers():
-            import requests
-            import pandas as pd
-        
-            url = "https://www.bbc.co.uk/sport/football/world-cup/top-scorers"
-        
-            headers = {
-                "User-Agent": "Mozilla/5.0"
-            }
-        
-            r = requests.get(url, headers=headers, timeout=20)
-        
-            if r.status_code != 200:
-                return pd.DataFrame(columns=["Player", "Goals"])
-        
-            text = r.text
-        
-            # fallback extraction: look for numeric goal patterns near names
-            import re
-        
-            # very loose extraction: "Name ... X goals"
-            pattern = re.findall(r'([A-Za-zÀ-ÿ\'\-\s]+)\s+(\d+)\s+goals?', text)
-        
-            rows = []
-        
-            for name, goals in pattern:
-                try:
-                    g = int(goals)
-                    if g > 0:
-                        rows.append({"Player": name.strip(), "Goals": g})
-                except:
-                    continue
-        
-            df = pd.DataFrame(rows).drop_duplicates()
-        
-            return df
 
-        df_gs = get_goalscorers()
-        
-        # safety check
-        if df_gs.empty:
-            st.info("No goals data available yet.")
-        else:
-            # ensure correct types
-            df_gs["Goals"] = pd.to_numeric(df_gs["Goals"], errors="coerce")
-            df_gs = df_gs.dropna(subset=["Goals"])
-        
-            # sort top scorers
-            df_gs = df_gs.sort_values("Goals", ascending=False).reset_index(drop=True)
-        
-            # optional: keep only top 10
-            df_gs = df_gs.head(10)
-        
-            st.subheader("🏆 Top Scorers")
-            st.dataframe(df_gs, use_container_width=True, hide_index=True)
             
     with subtab2:
 
