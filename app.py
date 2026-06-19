@@ -417,6 +417,145 @@ with tab2:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
 
+    
+        import requests
+        import pandas as pd
+    
+        # ----------------------------
+        # TEAM OWNERS (Golden Boot version)
+        # ----------------------------
+        TEAM_OWNERS_GOLDEN = {
+            "Argentina": "Maggie",
+            "Portugal": "Helen",
+            "Morocco": "Miles",
+            "Croatia": "Fiona",
+            "Spain": "Dan",
+            "Netherlands": "Rich",
+            "Belgium": "James",
+            "France": "Henry",
+            "Brazil": "Simy",
+            "England": "Anne",
+            "Germany": "Janet",
+            "Norway": "Grandma",
+        }
+    
+        DEFAULT_OWNER = "Holly"
+    
+        # ----------------------------
+        # FETCH SCORERS
+        # ----------------------------
+        @st.cache_data(ttl=3600)
+        def get_scorers():
+            API_KEY = st.secrets["FOOTBALL_DATA_API_KEY"]
+            headers = {"X-Auth-Token": API_KEY}
+    
+            url = "https://api.football-data.org/v4/competitions/WC/scorers"
+    
+            r = requests.get(url, headers=headers, timeout=20)
+            r.raise_for_status()
+    
+            data = r.json()
+    
+            rows = []
+    
+            for s in data.get("scorers", []):
+                player = s.get("player", {}).get("name")
+                team = s.get("team", {}).get("name")
+                goals = s.get("goals", 0)
+    
+                if goals and goals > 0:
+                    rows.append({
+                        "Player": player,
+                        "Team": team,
+                        "Goals": goals
+                    })
+    
+            return pd.DataFrame(rows)
+    
+        df = get_scorers()
+    
+        if df.empty:
+            st.warning("No Golden Boot data available yet.")
+            st.stop()
+    
+        # ----------------------------
+        # ADD OWNER COLUMN
+        # ----------------------------
+        df["Owner"] = df["Team"].apply(
+            lambda x: TEAM_OWNERS_GOLDEN.get(x, DEFAULT_OWNER)
+        )
+    
+        # ----------------------------
+        # SORT
+        # ----------------------------
+        df = df.sort_values("Goals", ascending=False).reset_index(drop=True)
+    
+        # ----------------------------
+        # TABLE STYLE (same as others)
+        # ----------------------------
+        html_table = df.to_html(index=False, escape=False)
+    
+        st.markdown(
+            """
+            <style>
+            .block-container {
+                max-width: 750px;
+                padding-top: 3rem;
+            }
+    
+            table {
+                margin-left: auto;
+                margin-right: auto;
+                width: auto;
+                font-size: 13px;
+                border-collapse: collapse;
+            }
+    
+            th {
+                background-color: #111;
+                color: white;
+                text-align: center;
+                padding: 6px;
+                white-space: nowrap;
+            }
+    
+            td {
+                padding: 6px;
+                vertical-align: top;
+                white-space: nowrap;
+            }
+    
+            tr:nth-child(even) {
+                background-color: #f5f5f5;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    
+        st.markdown(html_table, unsafe_allow_html=True)
+    
+        # ----------------------------
+        # WINNER LOGIC (EXCLUDE HOLLY)
+        # ----------------------------
+        non_holly = df[df["Owner"] != "Holly"]
+    
+        if not non_holly.empty:
+            max_goals = non_holly["Goals"].max()
+    
+            winners = non_holly[non_holly["Goals"] == max_goals]
+    
+            winner_names = ", ".join(
+                f"{r['Player']} ({r['Team']})"
+                for _, r in winners.iterrows()
+            )
+    
+            st.success(
+                f"🏆 Current Golden Boot leader(s): {winner_names} "
+                f"with {max_goals} goals"
+            )
+        else:
+            st.info("No eligible (non-Holly) Golden Boot leaders yet.")
 
             
     with subtab2:
