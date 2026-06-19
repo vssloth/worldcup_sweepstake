@@ -714,86 +714,50 @@ with tab2:
         st.write("Most red cards (£1,000,000 fine)")
         st.title("🔧 work in progress...")
     
-        matches = load_stormcup_data()
-        finished = matches[matches["status"] == "FINISHED"].copy()
-    
-        # ----------------------------
-        # RED CARD COUNT FROM EVENTS
-        # ----------------------------
-        red_cards = {}
-    
-        for _, row in finished.iterrows():
-    
-            cards = row.get("cards", [])
-    
-            if not isinstance(cards, list):
-                continue
-    
-            for c in cards:
-    
-                # only red cards
-                if str(c.get("type", "")).upper() != "RED_CARD":
-                    continue
-    
-                team = (
-                    c.get("team", {}).get("name")
-                    or c.get("team")
-                )
-    
-                if team:
-                    red_cards[team] = red_cards.get(team, 0) + 1
-    
-        # ----------------------------
-        # HANDLE EMPTY CASE
-        # ----------------------------
-        if not red_cards:
-            st.info("No red cards recorded yet.")
-            st.stop()
-    
-        # ----------------------------
-        # BUILD TABLE
-        # ----------------------------
-        df_rc = pd.DataFrame([
-            {"Team": team, "Red Cards": count}
-            for team, count in red_cards.items()
-        ])
-    
-        # ----------------------------
-        # OWNER MAPPING (placeholder for you)
-        # ----------------------------
-        TEAM_OWNERS_RED = TEAM_OWNERS_GOLDEN  # reuse same mapping
-        DEFAULT_OWNER = "Unassigned"
-    
-        df_rc["Owner"] = df_rc["Team"].apply(
-            lambda x: TEAM_OWNERS_RED.get(x, DEFAULT_OWNER)
-        )
-    
-        # ----------------------------
-        # SORT
-        # ----------------------------
-        df_rc = df_rc.sort_values("Red Cards", ascending=False)
-    
-        # ----------------------------
-        # LEADERS (EXCLUDING HOLLY LOGIC NOT NEEDED)
-        # ----------------------------
-        max_red = df_rc["Red Cards"].max()
-        leaders = df_rc[df_rc["Red Cards"] == max_red]
-    
-        leader_text = ", ".join(
-            f"{r['Team']} ({r['Owner']})"
-            for _, r in leaders.iterrows()
-        )
-    
-        st.error(
-            f"Current leader: {leader_text} with {max_red} red card{'s' if max_red != 1 else ''}"
-        )
-    
-        # ----------------------------
-        # TABLE
-        # ----------------------------
-        html_table = df_rc.to_html(index=False, escape=False)
-    
-        st.markdown(html_table, unsafe_allow_html=True)
+        import requests
+        import pandas as pd
+        
+        def get_red_cards():
+            url = "https://www.espn.co.uk/football/stats/_/league/FIFA.WORLD/view/discipline"
+        
+            headers = {
+                "User-Agent": "Mozilla/5.0"
+            }
+        
+            r = requests.get(url, headers=headers, timeout=20)
+        
+            # pandas may fail → wrap safely
+            try:
+                tables = pd.read_html(r.text)
+            except ValueError:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
+        
+            # find discipline table (has rc column)
+            df = None
+            for t in tables:
+                cols = [c.lower() for c in t.columns.astype(str)]
+                if any("rc" in c for c in cols):
+                    df = t
+                    break
+        
+            if df is None:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
+        
+            # normalize column names
+            df.columns = [str(c).strip() for c in df.columns]
+        
+            # ESPN format usually:
+            # Team | P | yc | rc | pts
+            df = df[["Team", "rc"]].copy()
+            df.columns = ["Team", "Red Cards"]
+        
+            # clean + numeric
+            df["Red Cards"] = pd.to_numeric(df["Red Cards"], errors="coerce").fillna(0)
+        
+            # keep only teams with red cards
+            df = df[df["Red Cards"] > 0]
+        
+            return df.sort_values("Red Cards", ascending=False)
 
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
