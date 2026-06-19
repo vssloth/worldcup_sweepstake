@@ -456,7 +456,8 @@ with tab2:
             st.stop()
         
         df_gs = df_gs.sort_values("Goals", ascending=False)
-                st.dataframe(df_gs, use_container_width=True, hide_index=True)
+                
+        st.dataframe(df_gs, use_container_width=True, hide_index=True)
 
     with subtab2:
 
