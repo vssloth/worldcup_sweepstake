@@ -588,7 +588,7 @@ with tab2:
     
                 st.write(
                     f"**{result['team']}** lost {result['score']} "
-                    f"to **{result['winner']}**"
+                    f"to {result['winner']}"
                 )
         else:
             st.info("No matches found yet.")    
