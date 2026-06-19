@@ -714,90 +714,46 @@ with tab2:
         st.write("Most red cards (£1,000,000 fine)")
         st.title("🔧 work in progress...")
 
-        import requests
-        import pandas as pd
-        import json
-        import re
-    
-        TEAM_OWNERS_RED = {
-            "Argentina": "Miles",
-            "Portugal": "Helen",
-            "Morocco": "Miles",
-            "Croatia": "Fiona",
-            "Spain": "Dan",
-            "Netherlands": "Rich",
-            "Belgium": "James",
-            "France": "Henry",
-            "Brazil": "Simy",
-            "England": "Anne",
-            "Germany": "Janet",
-            "Norway": "Grandma",
-        }
-    
-        DEFAULT_OWNER = "Holly"
-    
         @st.cache_data(ttl=3600)
         def get_red_cards():
-    
-            url = "https://www.fotmob.com/leagues/77/stats/season/24254/teams/total_red_card_team/world-cup-teams"
-            headers = {"User-Agent": "Mozilla/5.0"}
-    
-            r = requests.get(url, headers=headers, timeout=20)
-    
-            # --- extract JSON blob from page ---
-            match = re.search(r'({.*"props".*})', r.text)
-    
-            if not match:
-                return pd.DataFrame(columns=["Team", "Red Cards"])
-    
-            try:
-                data = json.loads(match.group(1))
-            except:
-                return pd.DataFrame(columns=["Team", "Red Cards"])
-    
-            # --- FotMob structure varies, so we safely walk it ---
-            try:
-                rows = data["props"]["pageProps"]["content"]["data"]["table"]["rows"]
-            except:
-                return pd.DataFrame(columns=["Team", "Red Cards"])
-    
-            parsed = []
-    
-            for row in rows:
-                team = row.get("name")
-                red = row.get("value", 0)
-    
-                if team and red is not None:
-                    parsed.append({
+        
+            import requests
+            import pandas as pd
+        
+            url = "https://www.fotmob.com/api/leagues/77/stats"
+        
+            params = {
+                "season": 24254,
+                "type": "total_red_card_team"
+            }
+        
+            headers = {
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "application/json"
+            }
+        
+            r = requests.get(url, params=params, headers=headers, timeout=20)
+            r.raise_for_status()
+        
+            data = r.json()
+        
+            rows = []
+        
+            # structure is usually: data["table"]["data"] OR similar
+            table = data.get("table", {}).get("data", [])
+        
+            for item in table:
+                team = item.get("team", {}).get("name")
+                value = item.get("value", 0)
+        
+                if team:
+                    rows.append({
                         "Team": team,
-                        "Red Cards": int(red)
+                        "Red Cards": int(value or 0)
                     })
+        
+            return pd.DataFrame(rows)
     
-            return pd.DataFrame(parsed)
-    
-        df_rc = get_red_cards()
-    
-        if df_rc.empty:
-            st.info("No red card data available yet.")
-            st.stop()
-    
-        # ----------------------------
-        # OWNER COLUMN
-        # ----------------------------
-        df_rc["Owner"] = df_rc["Team"].apply(
-            lambda x: TEAM_OWNERS_RED.get(x, DEFAULT_OWNER)
-        )
-    
-        # ----------------------------
-        # SORT
-        # ----------------------------
-        df_rc = df_rc.sort_values("Red Cards", ascending=False).reset_index(drop=True)
-    
-        # ----------------------------
-        # TABLE
-        # ----------------------------
-        st.dataframe(df_rc, use_container_width=True, hide_index=True)
-
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
         matches = load_stormcup_data()
