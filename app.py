@@ -475,7 +475,7 @@ with tab2:
         # 🔴 IMPORTANT FIX: use df_gs, not df
         if df_gs.empty:
             st.warning("No goals data found yet.")            
-            return
+            
     
         st.dataframe(df_gs, use_container_width=True, hide_index=True)
 
