@@ -416,15 +416,40 @@ with tab2:
     with subtab1:
         st.write("Top goalscorer (£10 prize)")
         st.title("🔧 work in progress...")
+
+        import requests
+        from bs4 import BeautifulSoup
         import pandas as pd
-
-        tables = pd.read_html(
-            "https://theanalyst.com/competition/fifa-world-cup/stats"
-        )
-
-        for i, t in enumerate(tables):
-            print(i)
-            print(t.head())
+        
+        def get_goalscorers():
+            url = "https://theanalyst.com/competition/fifa-world-cup/stats"
+        
+            headers = {
+                "User-Agent": "Mozilla/5.0"
+            }
+        
+            r = requests.get(url, headers=headers)
+            soup = BeautifulSoup(r.text, "html.parser")
+        
+            rows = []
+        
+            # NOTE: you will likely need to adjust selector once we inspect HTML
+            for row in soup.select("tr"):
+                cols = [c.get_text(strip=True) for c in row.select("td")]
+        
+                if len(cols) >= 4:
+                    name = cols[0]
+                    goals = cols[3]
+        
+                    if goals.isdigit() and int(goals) > 0:
+                        rows.append({
+                            "Player": name,
+                            "Goals": int(goals)
+                        })
+        
+            return pd.DataFrame(rows)
+        df_gs = get_goalscorers().sort_values("Goals", ascending=False)
+        st.dataframe(df_gs, use_container_width=True, hide_index=True)
 
     with subtab2:
 
