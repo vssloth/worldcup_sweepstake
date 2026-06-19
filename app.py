@@ -415,8 +415,6 @@ with tab2:
 
     with subtab1:
         st.write("Top goalscorer (£10 prize)")
-        st.title("🔧 work in progress...")
-
     
         import requests
         import pandas as pd
@@ -478,12 +476,22 @@ with tab2:
             st.warning("No Golden Boot data available yet.")
             st.stop()
     
-
+        # ----------------------------
+        # ADD OWNER COLUMN (FIXED ORDER)
+        # ----------------------------
+        df["Owner"] = df["Team"].apply(
+            lambda x: TEAM_OWNERS_GOLDEN.get(x, DEFAULT_OWNER)
+        )
+    
+        # ----------------------------
+        # SORT
+        # ----------------------------
+        df = df.sort_values("Goals", ascending=False).reset_index(drop=True)
     
         # ----------------------------
         # WINNER LOGIC (EXCLUDE HOLLY)
         # ----------------------------
-        non_holly = df[df["Owner"] != "🐾 Holly"]
+        non_holly = df[df["Owner"] != DEFAULT_OWNER]
     
         if not non_holly.empty:
             max_goals = non_holly["Goals"].max()
@@ -501,20 +509,9 @@ with tab2:
             )
         else:
             st.info("No eligible (non-Holly) Golden Boot leaders yet.")
-        # ----------------------------
-        # ADD OWNER COLUMN
-        # ----------------------------
-        df["Owner"] = df["Team"].apply(
-            lambda x: TEAM_OWNERS_GOLDEN.get(x, DEFAULT_OWNER)
-        )
     
         # ----------------------------
-        # SORT
-        # ----------------------------
-        df = df.sort_values("Goals", ascending=False).reset_index(drop=True)
-    
-        # ----------------------------
-        # TABLE STYLE (same as others)
+        # TABLE OUTPUT (BELOW CAPTION + TITLE)
         # ----------------------------
         html_table = df.to_html(index=False, escape=False)
     
@@ -556,8 +553,7 @@ with tab2:
             unsafe_allow_html=True
         )
     
-        st.markdown(html_table, unsafe_allow_html=True)
-            
+        st.markdown(html_table, unsafe_allow_html=True)            
     with subtab2:
 
         st.write("Most clean sheets (£10 prize)")
