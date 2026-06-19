@@ -716,24 +716,19 @@ with tab2:
 
         import requests
         import pandas as pd
+        import json
+        import re
     
-        # ----------------------------
-        # TEAM OWNERS (Red Card version)
-        # ----------------------------
         TEAM_OWNERS_RED = {
             "Argentina": "Miles",
             "Portugal": "Helen",
             "Morocco": "Miles",
-    
             "Croatia": "Fiona",
-    
             "Spain": "Dan",
             "Netherlands": "Rich",
             "Belgium": "James",
-    
             "France": "Henry",
             "Brazil": "Simy",
-    
             "England": "Anne",
             "Germany": "Janet",
             "Norway": "Grandma",
@@ -741,119 +736,67 @@ with tab2:
     
         DEFAULT_OWNER = "Holly"
     
-        # ----------------------------
-        # FETCH RED CARDS FROM FOTMOB
-        # ----------------------------
         @st.cache_data(ttl=3600)
         def get_red_cards():
+    
             url = "https://www.fotmob.com/leagues/77/stats/season/24254/teams/total_red_card_team/world-cup-teams"
             headers = {"User-Agent": "Mozilla/5.0"}
     
             r = requests.get(url, headers=headers, timeout=20)
-            r.raise_for_status()
     
-            # FotMob renders data in JSON inside script tags → safest approach is regex fallback
-            # BUT usually table exists in HTML as rows we can parse via pandas
-            tables = pd.read_html(r.text)
+            # --- extract JSON blob from page ---
+            match = re.search(r'({.*"props".*})', r.text)
     
-            # pick the table that contains red cards
-            df = None
-            for t in tables:
-                if t.shape[1] >= 2:
-                    df = t
-                    break
-    
-            if df is None:
+            if not match:
                 return pd.DataFrame(columns=["Team", "Red Cards"])
     
-            df = df.iloc[:, :2]
-            df.columns = ["Team", "Red Cards"]
+            try:
+                data = json.loads(match.group(1))
+            except:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
     
-            df["Red Cards"] = pd.to_numeric(df["Red Cards"], errors="coerce").fillna(0).astype(int)
+            # --- FotMob structure varies, so we safely walk it ---
+            try:
+                rows = data["props"]["pageProps"]["content"]["data"]["table"]["rows"]
+            except:
+                return pd.DataFrame(columns=["Team", "Red Cards"])
     
-            return df[df["Red Cards"] > 0]
+            parsed = []
+    
+            for row in rows:
+                team = row.get("name")
+                red = row.get("value", 0)
+    
+                if team and red is not None:
+                    parsed.append({
+                        "Team": team,
+                        "Red Cards": int(red)
+                    })
+    
+            return pd.DataFrame(parsed)
     
         df_rc = get_red_cards()
     
         if df_rc.empty:
-            st.info("No red cards recorded yet.")
+            st.info("No red card data available yet.")
             st.stop()
     
         # ----------------------------
-        # ADD OWNER COLUMN
+        # OWNER COLUMN
         # ----------------------------
         df_rc["Owner"] = df_rc["Team"].apply(
             lambda x: TEAM_OWNERS_RED.get(x, DEFAULT_OWNER)
         )
     
         # ----------------------------
-        # SORT TABLE
+        # SORT
         # ----------------------------
         df_rc = df_rc.sort_values("Red Cards", ascending=False).reset_index(drop=True)
     
         # ----------------------------
-        # STYLE TABLE (same format as others)
+        # TABLE
         # ----------------------------
-        html_table = df_rc.to_html(index=False, escape=False)
-    
-        st.markdown(
-            """
-            <style>
-            .block-container {
-                max-width: 750px;
-                padding-top: 3rem;
-            }
-    
-            table {
-                margin-left: auto;
-                margin-right: auto;
-                width: auto;
-                font-size: 13px;
-                border-collapse: collapse;
-            }
-    
-            th {
-                background-color: #111;
-                color: white;
-                text-align: center;
-                padding: 6px;
-                white-space: nowrap;
-            }
-    
-            td {
-                padding: 6px;
-                vertical-align: top;
-                white-space: nowrap;
-            }
-    
-            tr:nth-child(even) {
-                background-color: #f5f5f5;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-    
-        st.markdown(html_table, unsafe_allow_html=True)
-    
-        # ----------------------------
-        # CURRENT LEADER (excluding Holly)
-        # ----------------------------
-        non_holly = df_rc[df_rc["Owner"] != "Holly"]
-    
-        if not non_holly.empty:
-    
-            max_cards = non_holly["Red Cards"].max()
-            leaders = non_holly[non_holly["Red Cards"] == max_cards]
-    
-            leader_text = ", ".join(
-                f"{r['Owner']} ({r['Team']} - {r['Red Cards']})"
-                for _, r in leaders.iterrows()
-            )
-    
-            st.success(
-                f"🚨 Current leader: {leader_text}"
-            )
+        st.dataframe(df_rc, use_container_width=True, hide_index=True)
 
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
