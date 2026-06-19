@@ -471,6 +471,7 @@ with tab2:
     with subtab3:
         st.write("Most red cards (£1000000 fine)")
         st.title("🔧 work in progress...")
+
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
         matches = load_stormcup_data()
@@ -481,99 +482,137 @@ with tab2:
     
         biggest_loser = None
         biggest_margin = -1
+
+        largest_margin = 0
+        biggest_losers = []
         
         for _, row in finished.iterrows():
         
-            home_score = row["home_score"]
-            away_score = row["away_score"]
+        ```
+        home_score = row["home_score"]
+        away_score = row["away_score"]
         
-            if pd.isna(home_score) or pd.isna(away_score):
-                continue
+        if pd.isna(home_score) or pd.isna(away_score):
+            continue
         
-            margin = abs(home_score - away_score)
+        margin = abs(home_score - away_score)
         
-            if margin > biggest_margin:
+        if margin == 0:
+            continue
         
-                biggest_margin = margin
+        if home_score < away_score:
+            losing_team = row["home_team"]
+            winning_team = row["away_team"]
+            score = f"{int(home_score)}-{int(away_score)}"
+        else:
+            losing_team = row["away_team"]
+            winning_team = row["home_team"]
+            score = f"{int(away_score)}-{int(home_score)}"
         
-                if home_score < away_score:
-                    biggest_loser = (
-                        row["home_team"],
-                        f"{int(home_score)}-{int(away_score)}",
-                        row["away_team"]
-                    )
-                elif away_score < home_score:
-                    biggest_loser = (
-                        row["away_team"],
-                        f"{int(away_score)}-{int(home_score)}",
-                        row["home_team"]
-                    )
+        if margin > largest_margin:
         
-        if biggest_loser:
+            largest_margin = margin
         
-            loser, score, winner = biggest_loser
+            biggest_losers = [{
+                "team": losing_team,
+                "winner": winning_team,
+                "score": score
+            }]
+        
+        elif margin == largest_margin:
+        
+            biggest_losers.append({
+                "team": losing_team,
+                "winner": winning_team,
+                "score": score
+            })
+        ```
+        
+        if biggest_losers:
+        
+        ```
+        TEAM_OWNER = {
+            "Argentina": "Miles",
+            "Portugal": "Fiona",
+            "Colombia": "Fiona",
+            "Switzerland": "Maggie",
+            "Croatia": "Helen",
+            "Senegal": "Maggie",
+            "Egypt": "Dan",
+            "Algeria": "James",
+            "Ivory Coast": "Henry",
+            "Qatar": "Janet",
+            "Saudi Arabia": "Anne",
+            "New Zealand": "James",
+            "Spain": "Fiona",
+            "Netherlands": "Grandma",
+            "Belgium": "Simy",
+            "Japan": "Rich",
+            "Mexico": "Rich",
+            "Sweden": "Simy",
+            "South Korea": "Dan",
+            "Iran": "Miles",
+            "Scotland": "Grandma",
+            "South Africa": "Henry",
+            "Jordan": "Janet",
+            "Haiti": "James",
+            "France": "Henry",
+            "Brazil": "James",
+            "Morocco": "Fiona",
+            "Uruguay": "Janet",
+            "United States": "Janet",
+            "Austria": "Anne",
+            "Canada": "Grandma",
+            "Bosnia-Herzegovina": "Helen",
+            "Ghana": "Simy",
+            "Tunisia": "Rich",
+            "Uzbekistan": "Dan",
+            "Cape Verde Islands": "Rich",
+            "England": "Miles",
+            "Germany": "Anne",
+            "Norway": "Simy",
+            "Ecuador": "Dan",
+            "Turkey": "Grandma",
+            "Paraguay": "Henry",
+            "Australia": "Maggie",
+            "Czechia": "Anne",
+            "Panama": "Helen",
+            "Iraq": "Miles",
+            "Congo DR": "Helen",
+            "Curaçao": "Maggie",
+        }
+        
+        owner_strings = []
+        
+        for loser_info in biggest_losers:
+            owner = TEAM_OWNER.get(loser_info["team"], "Unknown")
+        
+            owner_strings.append(
+                f"**{loser_info['team']}** ({owner}) "
+                f"lost {loser_info['score']} to "
+                f"**{loser_info['winner']}**"
+            )
 
-            TEAM_OWNER = {
-                "Argentina": "Miles",
-                "Portugal": "Fiona",
-                "Colombia": "Fiona",
-                "Switzerland": "Maggie",
-                "Croatia": "Helen",
-                "Senegal": "Maggie",
-                "Egypt": "Dan",
-                "Algeria": "James",
-                "Ivory Coast": "Henry",
-                "Qatar": "Janet",
-                "Saudi Arabia": "Anne",
-                "New Zealand": "James",
-                "Spain": "Fiona",
-                "Netherlands": "Grandma",
-                "Belgium": "Simy",
-                "Japan": "Rich",
-                "Mexico": "Rich",
-                "Sweden": "Simy",
-                "South Korea": "Dan",
-                "Iran": "Miles",
-                "Scotland": "Grandma",
-                "South Africa": "Henry",
-                "Jordan": "Janet",
-                "Haiti": "James",
-                "France": "Henry",
-                "Brazil": "James",
-                "Morocco": "Fiona",
-                "Uruguay": "Janet",
-                "United States": "Janet",
-                "Austria": "Anne",
-                "Canada": "Grandma",
-                "Bosnia-Herzegovina": "Helen",
-                "Ghana": "Simy",
-                "Tunisia": "Rich",
-                "Uzbekistan": "Dan",
-                "Cape Verde Islands": "Rich",
-                "England": "Miles",
-                "Germany": "Anne",
-                "Norway": "Simy",
-                "Ecuador": "Dan",
-                "Turkey": "Grandma",
-                "Paraguay": "Henry",
-                "Australia": "Maggie",
-                "Czechia": "Anne",
-                "Panama": "Helen",
-                "Iraq": "Miles",
-                "Congo DR": "Helen",
-                "Curaçao": "Maggie",
-            }
-
-            owner = TEAM_OWNER.get(loser, "Unknown")
-
-            
+      
+        
+        if biggest_losers:
+        
+        st.info(
+            f"{len(biggest_losers)} team(s) tied for biggest defeat"
+        )
+        
+        for result in biggest_losers:
+        
+            owner = TEAM_OWNER.get(result["team"], "Unknown")
         
             st.info(
                 f"**{owner}**"
             )
+        
             st.write(
-                f"Biggest defeat so far: **{loser}** lost **{score}** to **{winner}** "
-                f"({biggest_margin}-goal margin)"
+                f"Biggest defeat so far: **{result['team']}** "
+                f"lost **{result['score']}** to **{result['winner']}** "
+                f"({largest_margin}-goal margin)"
             )
     
 # ----------------------------
