@@ -745,20 +745,22 @@ with tab2:
             rows = []
     
             for team in data.get("stats", []):
-                team_name = team.get("name")
-    
+                raw_name = team.get("name")
+            
+                team_name = TEAM_NAME_FIXES.get(raw_name, raw_name)
+            
                 red_cards = 0
                 for stat in team.get("statistics", []):
                     if stat.get("name") == "redCards":
                         red_cards = int(stat.get("value", 0))
                         break
-    
+            
                 rows.append({
                     "Owner": TEAM_OWNER_RED.get(team_name, "Unknown"),
                     "Team": team_name,
                     "Red Cards": red_cards
                 })
-    
+                
             df = pd.DataFrame(rows)
             return df.sort_values("Red Cards", ascending=False).reset_index(drop=True)
     
