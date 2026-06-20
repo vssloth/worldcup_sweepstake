@@ -789,8 +789,8 @@ with tab2:
             for _, row in leaders.iterrows()
         )
     
-        st.error(
-            f"🚨 CURRENT RED CARD LEADER(S): {leader_text} — {max_red} card(s)"
+        st.success(
+            f"Current leader: {leader_text} — {max_red} red cards"
         )
     
         # ----------------------------
@@ -840,13 +840,7 @@ with tab2:
     
         st.markdown(html_table, unsafe_allow_html=True)
     
-        # ----------------------------
-        # DEBUG
-        # ----------------------------
-        unmapped = df_rc[df_rc["Owner"] == "Unknown"]
-        if not unmapped.empty:
-            with st.expander("⚠️ Unmapped Teams"):
-                st.write(unmapped[["Team"]])   
+
             
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
