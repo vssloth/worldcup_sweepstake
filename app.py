@@ -759,15 +759,19 @@ with tab2:
     
             df = pd.DataFrame(rows)
             return df.sort_values("Red Cards", ascending=False).reset_index(drop=True)
-    
+        
+        df_rc = df_rc[df_rc["Red Cards"] > 0]
     
         # ----------------------------
         # LOAD DATA
         # ----------------------------
         df_rc = get_red_cards()
-    
+        
         df_rc["Team"] = df_rc["Team"].replace(TEAM_NAME_FIXES)
-    
+        
+        # ❗ REMOVE ZERO RED CARD TEAMS
+        df_rc = df_rc[df_rc["Red Cards"] > 0]
+        
         # ----------------------------
         # LEADER BANNER (TOP)
         # ----------------------------
