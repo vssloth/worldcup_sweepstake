@@ -707,19 +707,14 @@ with tab2:
         else:
             st.info("No clean sheets recorded yet.")
         
-        
-
+    
     with subtab3:
     
         st.write("Most red cards (£1,000,000 fine)")
-        st.title("🔧 Work in progress")
     
         import requests
         import pandas as pd
     
-        # ----------------------------
-        # TEAM FIXES (ESPN → your naming)
-        # ----------------------------
         TEAM_NAME_FIXES = {
             "Cape Verde": "Cabo Verde",
             "South Korea": "Korea Rep",
@@ -727,17 +722,12 @@ with tab2:
             "Bosnia-Herzegovina": "Bosnia",
         }
     
-        # ----------------------------
-        # OWNER MAPPING
-        # ----------------------------
         TEAM_OWNER_RED = {}
         for owner, teams in PLAYERS.items():
             for team in teams:
                 TEAM_OWNER_RED[team] = owner
     
-        # ----------------------------
-        # DATA LOADER
-        # ----------------------------
+    
         @st.cache_data(ttl=3600)
         def get_red_cards():
             url = (
@@ -758,10 +748,11 @@ with tab2:
                 red_cards = 0
                 for stat in team.get("statistics", []):
                     if stat.get("name") == "redCards":
-                        red_cards = stat.get("value", 0)
+                        red_cards = int(stat.get("value", 0))
                         break
     
                 rows.append({
+                    "Owner": TEAM_OWNER_RED.get(team_name, "Unknown"),
                     "Team": team_name,
                     "Red Cards": red_cards
                 })
@@ -769,23 +760,18 @@ with tab2:
             df = pd.DataFrame(rows)
             return df.sort_values("Red Cards", ascending=False).reset_index(drop=True)
     
+    
         # ----------------------------
-        # RUN
+        # LOAD DATA
         # ----------------------------
         df_rc = get_red_cards()
     
-        # Fix names
         df_rc["Team"] = df_rc["Team"].replace(TEAM_NAME_FIXES)
     
-        # Map owners
-        df_rc["Owner"] = df_rc["Team"].map(TEAM_OWNER_RED).fillna("Unknown")
-    
-        # Show table
-        st.subheader("🚨 Red Cards Tracker")
-        st.dataframe(df_rc, use_container_width=True)
-    
-        # Leader logic
-        max_red = df_rc["Red Cards"].max()
+        # ----------------------------
+        # LEADER BANNER (TOP)
+        # ----------------------------
+        max_red = int(df_rc["Red Cards"].max())
         leaders = df_rc[df_rc["Red Cards"] == max_red]
     
         leader_text = ", ".join(
@@ -794,11 +780,59 @@ with tab2:
         )
     
         st.error(
-            f"🚨 Current red card leader(s): {leader_text} "
-            f"with {max_red} card{'s' if max_red != 1 else ''}"
+            f"🚨 CURRENT RED CARD LEADER(S): {leader_text} — {max_red} card(s)"
         )
     
-        # Debug unmapped
+        # ----------------------------
+        # HTML TABLE (your required format)
+        # ----------------------------
+        display_df = df_rc[["Owner", "Team", "Red Cards"]]
+    
+        html_table = display_df.to_html(index=False, escape=False)
+    
+        st.markdown(
+            """
+            <style>
+            .block-container {
+                max-width: 750px;
+                padding-top: 3rem;
+            }
+    
+            table {
+                margin-left: auto;
+                margin-right: auto;
+                width: auto;
+                font-size: 13px;
+                border-collapse: collapse;
+            }
+    
+            th {
+                background-color: #111;
+                color: white;
+                text-align: center;
+                padding: 6px;
+                white-space: nowrap;
+            }
+    
+            td {
+                padding: 6px;
+                vertical-align: top;
+                white-space: nowrap;
+            }
+    
+            tr:nth-child(even) {
+                background-color: #f5f5f5;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    
+        st.markdown(html_table, unsafe_allow_html=True)
+    
+        # ----------------------------
+        # DEBUG (optional)
+        # ----------------------------
         unmapped = df_rc[df_rc["Owner"] == "Unknown"]
         if not unmapped.empty:
             with st.expander("⚠️ Unmapped Teams"):
