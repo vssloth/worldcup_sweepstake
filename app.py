@@ -719,6 +719,7 @@ with tab2:
             "Cape Verde": "Cabo Verde",
             "South Korea": "Korea Rep",
             "Ivory Coast": "Côte d'Ivoire",
+            "Bosnia-Herzegovina": "Bosnia"
             
         }
     
