@@ -709,7 +709,7 @@ with tab2:
         
     
     with subtab3:
-    
+
         st.write("Most red cards (£1,000,000 fine)")
     
         import requests
@@ -759,21 +759,27 @@ with tab2:
     
             df = pd.DataFrame(rows)
             return df.sort_values("Red Cards", ascending=False).reset_index(drop=True)
-        
+    
+    
+        # ----------------------------
+        # LOAD DATA (FIXED ORDER)
+        # ----------------------------
+        df_rc = get_red_cards()
+    
+        df_rc["Team"] = df_rc["Team"].replace(TEAM_NAME_FIXES)
+    
+        # ❗ REMOVE ZERO RED CARD TEAMS (NOW CORRECT PLACE)
         df_rc = df_rc[df_rc["Red Cards"] > 0]
     
         # ----------------------------
-        # LOAD DATA
+        # SAFETY CHECK (IMPORTANT)
         # ----------------------------
-        df_rc = get_red_cards()
-        
-        df_rc["Team"] = df_rc["Team"].replace(TEAM_NAME_FIXES)
-        
-        # ❗ REMOVE ZERO RED CARD TEAMS
-        df_rc = df_rc[df_rc["Red Cards"] > 0]
-        
+        if df_rc.empty:
+            st.success("🎉 No red cards yet.")
+            st.stop()
+    
         # ----------------------------
-        # LEADER BANNER (TOP)
+        # LEADER BANNER
         # ----------------------------
         max_red = int(df_rc["Red Cards"].max())
         leaders = df_rc[df_rc["Red Cards"] == max_red]
@@ -788,7 +794,7 @@ with tab2:
         )
     
         # ----------------------------
-        # HTML TABLE (your required format)
+        # HTML TABLE
         # ----------------------------
         display_df = df_rc[["Owner", "Team", "Red Cards"]]
     
@@ -835,13 +841,13 @@ with tab2:
         st.markdown(html_table, unsafe_allow_html=True)
     
         # ----------------------------
-        # DEBUG (optional)
+        # DEBUG
         # ----------------------------
         unmapped = df_rc[df_rc["Owner"] == "Unknown"]
         if not unmapped.empty:
             with st.expander("⚠️ Unmapped Teams"):
-                st.write(unmapped[["Team"]])
-        
+                st.write(unmapped[["Team"]])   
+            
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
         matches = load_stormcup_data()
