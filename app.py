@@ -714,6 +714,25 @@ with tab2:
     
         st.write("Most red cards (£1,000,000 fine)")
         st.title("🔧 work in progress")
+
+        import requests
+        import pandas as pd
+        
+        url = (
+            "https://site.web.api.espn.com/apis/site/v2/sports/"
+            "soccer/FIFA.WORLD/statistics"
+            "?region=gb&lang=en&contentorigin=espn&discipline=true"
+        )
+        
+        r = requests.get(url, timeout=20)
+        
+        st.write("Status:", r.status_code)
+        
+        data = r.json()
+        
+        st.write(data.keys())
+        st.json(data)
+
     
         
     with subtab4:
