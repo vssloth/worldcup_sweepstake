@@ -785,7 +785,7 @@ with tab2:
         leaders = df_rc[df_rc["Red Cards"] == max_red]
     
         leader_text = ", ".join(
-            f"{row['Owner']} ({row['Team']})"
+            f"{row**['Owner']**} ({row['Team']})"
             for _, row in leaders.iterrows()
         )
     
