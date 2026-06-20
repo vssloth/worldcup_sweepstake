@@ -715,25 +715,113 @@ with tab2:
         st.write("Most red cards (£1,000,000 fine)")
         st.title("🔧 work in progress")
 
+        import streamlit as st
         import requests
         import pandas as pd
         
-        url = (
-            "https://site.web.api.espn.com/apis/site/v2/sports/"
-            "soccer/FIFA.WORLD/statistics"
-            "?region=gb&lang=en&contentorigin=espn&discipline=true"
-        )
+        # ----------------------------
+        # TEAM FIXES (ESPN → your naming)
+        # ----------------------------
+        TEAM_NAME_FIXES = {
+            "Cape Verde": "Cabo Verde",
+            "South Korea": "Korea Rep",
+            "Ivory Coast": "Côte d'Ivoire",
+            "Bosnia-Herzegovina": "Bosnia",
+        }
         
-        r = requests.get(url, timeout=20)
+        # ----------------------------
+        # OWNER MAPPING
+        # ----------------------------
+        TEAM_OWNER_RED = {}
+        for owner, teams in PLAYERS.items():
+            for team in teams:
+                TEAM_OWNER_RED[team] = owner
         
-        st.write("Status:", r.status_code)
         
-        data = r.json()
+        # ----------------------------
+        # DATA LOADER
+        # ----------------------------
+        @st.cache_data(ttl=3600)
+        def get_red_cards():
+            url = (
+                "https://site.web.api.espn.com/apis/site/v2/"
+                "sports/soccer/FIFA.WORLD/statistics"
+                "?region=gb&lang=en&contentorigin=espn&discipline=true"
+            )
         
-        st.write(data.keys())
-        st.json(data)
+            r = requests.get(url, timeout=20)
+            r.raise_for_status()
+            data = r.json()
+        
+            rows = []
+        
+            for team in data.get("stats", []):
+                team_name = team.get("name")
+        
+                red_cards = 0
+                for stat in team.get("statistics", []):
+                    if stat.get("name") == "redCards":
+                        red_cards = stat.get("value", 0)
+                        break
+        
+                rows.append({
+                    "Team": team_name,
+                    "Red Cards": red_cards
+                })
+        
+            df = pd.DataFrame(rows)
+            return df.sort_values("Red Cards", ascending=False).reset_index(drop=True)
+        
+        
+        # ----------------------------
+        # SUBTAB 3 UI
+        # ----------------------------
+        def render_red_cards_tab():
+        
+            st.subheader("🚨 Red Cards Tracker")
+        
+            df_rc = get_red_cards()
+        
+            # Fix ESPN naming differences
+            df_rc["Team"] = df_rc["Team"].replace(TEAM_NAME_FIXES)
+        
+            # Map ownership
+            df_rc["Owner"] = df_rc["Team"].map(TEAM_OWNER_RED).fillna("Unknown")
+        
+            # Show full table
+            st.dataframe(df_rc, use_container_width=True)
+        
+            # ----------------------------
+            # Leader detection
+            # ----------------------------
+            max_red = df_rc["Red Cards"].max()
+            leaders = df_rc[df_rc["Red Cards"] == max_red]
+        
+            leader_text = ", ".join(
+                f"{row['Owner']} ({row['Team']})"
+                for _, row in leaders.iterrows()
+            )
+        
+            st.error(
+                f"🚨 Current red card leader(s): {leader_text} "
+                f"with {max_red} card{'s' if max_red != 1 else ''}"
+            )
+        
+            # ----------------------------
+            # Debug: unmapped teams
+            # ----------------------------
+            unmapped = df_rc[df_rc["Owner"].isna()]
+            if not unmapped.empty:
+                with st.expander("⚠️ Unmapped Teams (check naming)"):
+                    st.write(unmapped[["Team"]])
+        
+        
 
-    
+            render_red_cards_tab()
+                   
+            df_rc = get_red_cards()
+        
+            st.write(df_rc) 
         
     with subtab4:
         st.write("Biggest single loss (£5 prize)")
