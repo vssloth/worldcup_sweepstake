@@ -47,6 +47,68 @@ prev_df = df[df["date"] == previous_date]
 # ----------------------------
 # PLAYERS (WORLD CUP)
 # ----------------------------
+ELIMINATED = {
+    "Argentina": False,
+    "Iraq": False,
+    "Iran": False,
+    "England": False,
+
+    "New Zealand": False,
+    "Algeria": False,
+    "Haiti": True,
+    "Brazil": False,
+
+    "France": False,
+    "South Africa": False,
+    "Côte d'Ivoire": False,
+    "Paraguay": False,
+
+    "Curaçao": False,
+    "Senegal": False,
+    "Switzerland": False,
+    "Australia": False,
+
+    "Ghana": False,
+    "Sweden": False,
+    "Belgium": False,
+    "Norway": False,
+
+    "Spain": False,
+    "Colombia": False,
+    "Portugal": False,
+    "Morocco": False,
+
+    "Croatia": False,
+    "Congo DR": False,
+    "Panama": False,
+    "Bosnia": False,
+
+    "Egypt": False,
+    "Korea Rep": False,
+    "Ecuador": False,
+    "Uzbekistan": False,
+
+    "Austria": False,
+    "Germany": False,
+    "Saudi Arabia": False,
+    "Czechia": False,
+
+    "Cabo Verde": False,
+    "Mexico": False,
+    "Japan": False,
+    "Tunisia": True,
+
+    "Türkiye": True,
+    "Scotland": False,
+    "Netherlands": False,
+    "Canada": False,
+
+    "United States": False,
+    "Jordan": True,
+    "Uruguay": False,
+    "Qatar": True,
+}
+
 PLAYERS = {
     "Miles": ["Argentina", "Iraq", "Iran", "England"],
     "James": ["New Zealand", "Algeria", "Haiti", "Brazil"],
@@ -280,9 +342,16 @@ with tab1:
                     '<span style="color:gray;">• 0.0%</span>'
                 )
 
-            team_strings.append(
+            team_text = (
                 f"{t}: {current_val:.1f}% ({team_delta_html})"
             )
+            
+            if ELIMINATED.get(t, False):
+                team_text = (
+                    f"<span style='opacity:0.5;'><s>{team_text}</s></span>"
+                )
+            
+            team_strings.append(team_text)
 
         team_html = "<br>".join(team_strings)
 
@@ -710,7 +779,7 @@ with tab2:
     
     with subtab3:
 
-        st.write("Most red cards (£1,000,000 fine)")
+        st.write("Most red cards (£1,000,000 fine) or £5 prize")
     
         import requests
         import pandas as pd
