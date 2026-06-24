@@ -80,7 +80,7 @@ ELIMINATED = {
 
     "Croatia": False,
     "Congo DR": False,
-    "Panama": False,
+    "Panama": True,
     "Bosnia": False,
 
     "Egypt": False,
@@ -779,7 +779,7 @@ with tab2:
     
     with subtab3:
 
-        st.write("Most red cards (£1,000,000 fine) or £5 prize")
+        st.write("Most red cards (£1,000,000 fine or £5 prize)")
     
         import requests
         import pandas as pd
