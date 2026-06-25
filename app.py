@@ -91,7 +91,7 @@ ELIMINATED = {
     "Austria": False,
     "Germany": False,
     "Saudi Arabia": False,
-    "Czechia": False,
+    "Czechia": True,
 
     "Cabo Verde": False,
     "Mexico": False,
