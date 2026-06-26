@@ -453,7 +453,7 @@ with tab1:
         x="Date",
         y="Chance",
         color="Player",
-        markers=True
+        markers=False
     )
 
     fig.update_layout(
