@@ -53,7 +53,7 @@ ELIMINATED = {
     "Iran": False,
     "England": False,
 
-    "New Zealand": False,
+    "New Zealand": True,
     "Algeria": False,
     "Haiti": True,
     "Brazil": False,
@@ -90,7 +90,7 @@ ELIMINATED = {
 
     "Austria": False,
     "Germany": False,
-    "Saudi Arabia": False,
+    "Saudi Arabia": True,
     "Czechia": True,
 
     "Cabo Verde": False,
@@ -105,7 +105,7 @@ ELIMINATED = {
 
     "United States": False,
     "Jordan": True,
-    "Uruguay": False,
+    "Uruguay": True,
     "Qatar": True,
 }
 
