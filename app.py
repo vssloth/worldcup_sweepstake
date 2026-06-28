@@ -50,7 +50,7 @@ prev_df = df[df["date"] == previous_date]
 ELIMINATED = {
     "Argentina": False,
     "Iraq": True,
-    "Iran": False,
+    "Iran": True,
     "England": False,
 
     "New Zealand": True,
@@ -84,9 +84,9 @@ ELIMINATED = {
     "Bosnia": False,
 
     "Egypt": False,
-    "Korea Rep": False,
+    "Korea Rep": True,
     "Ecuador": False,
-    "Uzbekistan": False,
+    "Uzbekistan": True,
 
     "Austria": False,
     "Germany": False,
