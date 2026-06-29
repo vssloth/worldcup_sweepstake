@@ -95,7 +95,7 @@ ELIMINATED = {
 
     "Cabo Verde": False,
     "Mexico": False,
-    "Japan": False,
+    "Japan": True,
     "Tunisia": True,
 
     "Türkiye": True,
