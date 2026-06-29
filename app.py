@@ -89,7 +89,7 @@ ELIMINATED = {
     "Uzbekistan": True,
 
     "Austria": False,
-    "Germany": False,
+    "Germany": True,
     "Saudi Arabia": True,
     "Czechia": True,
 
