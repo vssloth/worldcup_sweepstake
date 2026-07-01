@@ -79,7 +79,7 @@ ELIMINATED = {
     "Morocco": False,
 
     "Croatia": False,
-    "Congo DR": False,
+    "Congo DR": True,
     "Panama": True,
     "Bosnia": False,
 
