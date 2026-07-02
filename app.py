@@ -287,6 +287,7 @@ with tab1:
     st.title("🏆 Chance Of Winning")
     st.write("Prizes:🥇£28, 🥈£5, 🥄£5 (first to have all 4 teams eliminated)")
     st.caption(f"Latest snapshot: {latest_date}")
+    st.write("Eliminated in R32: Anne")
 
     player_rows = []
 
