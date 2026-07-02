@@ -64,7 +64,7 @@ ELIMINATED = {
     "Paraguay": False,
 
     "Curaçao": True,
-    "Senegal": False,
+    "Senegal": True,
     "Switzerland": False,
     "Australia": False,
 
@@ -81,7 +81,7 @@ ELIMINATED = {
     "Croatia": False,
     "Congo DR": True,
     "Panama": True,
-    "Bosnia": False,
+    "Bosnia": True,
 
     "Egypt": False,
     "Korea Rep": True,
