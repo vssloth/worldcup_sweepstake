@@ -66,7 +66,7 @@ ELIMINATED = {
     "Curaçao": True,
     "Senegal": True,
     "Switzerland": False,
-    "Australia": False,
+    "Australia": True,
 
     "Ghana": False,
     "Sweden": True,
