@@ -101,7 +101,7 @@ ELIMINATED = {
     "Türkiye": True,
     "Scotland": True,
     "Netherlands": True,
-    "Canada": False,
+    "Canada": True,
 
     "United States": False,
     "Jordan": True,
