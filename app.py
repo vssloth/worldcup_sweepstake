@@ -61,7 +61,7 @@ ELIMINATED = {
     "France": False,
     "South Africa": True,
     "Côte d'Ivoire": True,
-    "Paraguay": False,
+    "Paraguay": True,
 
     "Curaçao": True,
     "Senegal": True,
