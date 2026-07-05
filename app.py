@@ -56,7 +56,7 @@ ELIMINATED = {
     "New Zealand": True,
     "Algeria": True,
     "Haiti": True,
-    "Brazil": False,
+    "Brazil": True,
 
     "France": False,
     "South Africa": True,
