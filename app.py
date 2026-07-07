@@ -83,7 +83,7 @@ ELIMINATED = {
     "Panama": True,
     "Bosnia": True,
 
-    "Egypt": False,
+    "Egypt": True,
     "Korea Rep": True,
     "Ecuador": True,
     "Uzbekistan": True,
@@ -288,7 +288,7 @@ with tab1:
     st.write("Prizes:🥇£28, 🥈£5, 🥄£5 (first to have all 4 teams eliminated)")
     st.caption(f"Latest snapshot: {latest_date}")
     st.write("Eliminated in R32: Anne, Helen")
-    st.write("Eliminated in R16: Grandma, James, Rich, Janet")
+    st.write("Eliminated in R16: Grandma, James, Rich, Janet, Dan")
 
     player_rows = []
 
