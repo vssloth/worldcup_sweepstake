@@ -71,7 +71,7 @@ ELIMINATED = {
     "Ghana": True,
     "Sweden": True,
     "Belgium": True,
-    "Norway": False,
+    "Norway": True,
 
     "Spain": False,
     "Colombia": True,
