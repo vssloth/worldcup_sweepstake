@@ -65,7 +65,7 @@ ELIMINATED = {
 
     "Curaçao": True,
     "Senegal": True,
-    "Switzerland": False,
+    "Switzerland": True,
     "Australia": True,
 
     "Ghana": True,
@@ -289,7 +289,7 @@ with tab1:
     st.caption(f"Latest snapshot: {latest_date}")
     st.write("Eliminated in R32: Anne, Helen")
     st.write("Eliminated in R16: Grandma, James, Rich, Janet, Dan")
-    st.write("Eliminated in QF: Simy")
+    st.write("Eliminated in QF: Simy, Maggie")
     player_rows = []
 
     for player, teams in PLAYERS.items():
