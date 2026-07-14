@@ -290,7 +290,7 @@ with tab1:
     st.write("Eliminated in R32: Anne, Helen")
     st.write("Eliminated in R16: Grandma, James, Rich, Janet, Dan")
     st.write("Eliminated in QF: Simy, Maggie")
-    st.write("Elimimated in SF: Henry")
+    st.write("Eliminated in SF: Henry")
     player_rows = []
 
     for player, teams in PLAYERS.items():
