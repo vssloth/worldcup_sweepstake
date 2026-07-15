@@ -51,7 +51,7 @@ ELIMINATED = {
     "Argentina": False,
     "Iraq": True,
     "Iran": True,
-    "England": False,
+    "England": True,
 
     "New Zealand": True,
     "Algeria": True,
