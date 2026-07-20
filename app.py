@@ -48,7 +48,7 @@ prev_df = df[df["date"] == previous_date]
 # PLAYERS (WORLD CUP)
 # ----------------------------
 ELIMINATED = {
-    "Argentina": False,
+    "Argentina": True,
     "Iraq": True,
     "Iran": True,
     "England": True,
@@ -291,6 +291,7 @@ with tab1:
     st.write("Eliminated in R16: Grandma, James, Rich, Janet, Dan")
     st.write("Eliminated in QF: Simy, Maggie")
     st.write("Eliminated in SF: Henry")
+    st.write("Eliminated in F: Miles")
     player_rows = []
 
     for player, teams in PLAYERS.items():
